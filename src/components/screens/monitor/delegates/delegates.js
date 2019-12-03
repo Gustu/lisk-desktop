@@ -25,6 +25,7 @@ const Delegates = ({
   sort,
   standByDelegates,
   t,
+  networkStatus,
 }) => {
   const [activeTab, setActiveTab] = useState('active');
   const statuses = {
@@ -148,6 +149,7 @@ const Delegates = ({
       />
       <ForgingDetails
         t={t}
+        networkStatus={networkStatus}
       />
       <DelegatesTable {...{
         columns,
