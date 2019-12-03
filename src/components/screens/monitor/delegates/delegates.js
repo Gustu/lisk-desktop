@@ -12,6 +12,7 @@ import Tooltip from '../../../toolbox/tooltip/tooltip';
 import routes from '../../../../constants/routes';
 import Overview from './overview';
 import styles from './delegates.css';
+import ForgingDetails from './forgingDetails';
 
 const Delegates = ({
   applyFilters,
@@ -143,6 +144,9 @@ const Delegates = ({
         chartDelegatesForging={chartDelegatesForging}
         chartRegisteredDelegates={chartRegisteredDelegatesData}
         delegatesForgedLabels={Object.values(statuses)}
+        t={t}
+      />
+      <ForgingDetails
         t={t}
       />
       <DelegatesTable {...{
