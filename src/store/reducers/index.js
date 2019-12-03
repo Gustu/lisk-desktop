@@ -8,3 +8,4 @@ export { default as settings } from './settings';
 export { default as toaster } from './toaster';
 export { default as transactions } from './transactions';
 export { default as voting } from './voting';
+export { default as forging } from './forging';

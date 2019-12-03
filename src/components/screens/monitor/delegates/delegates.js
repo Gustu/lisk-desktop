@@ -1,5 +1,6 @@
+/* eslint-disable max-statements */
 import { withTranslation } from 'react-i18next';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import grid from 'flexboxgrid/dist/flexboxgrid.css';
 import moment from 'moment';
 import { DEFAULT_LIMIT } from '../../../../constants/monitor';
@@ -13,6 +14,7 @@ import routes from '../../../../constants/routes';
 import Overview from './overview';
 import styles from './delegates.css';
 import ForgingDetails from './forgingDetails';
+import { concealForgingData } from '../../../../actions/forging';
 
 const Delegates = ({
   applyFilters,
@@ -26,6 +28,8 @@ const Delegates = ({
   standByDelegates,
   t,
   networkStatus,
+  fetchForgingData,
+  nextForgers,
 }) => {
   const [activeTab, setActiveTab] = useState('active');
   const statuses = {
@@ -137,6 +141,11 @@ const Delegates = ({
     }
     : standByDelegates;
 
+  useEffect(() => {
+    if (!nextForgers) fetchForgingData();
+    return () => concealForgingData();
+  });
+
   return (
     <div>
       <MonitorHeader />
@@ -150,6 +159,7 @@ const Delegates = ({
       <ForgingDetails
         t={t}
         networkStatus={networkStatus}
+        nextForgers={nextForgers}
       />
       <DelegatesTable {...{
         columns,

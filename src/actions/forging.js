@@ -3,7 +3,7 @@ import liskServiceApi from '../utils/api/lsk/liskService';
 import { getAPIClient } from '../utils/api/network';
 import { tokenMap } from '../constants/tokens';
 
-const fetchForgingData = () => (dispatch, getState) => {
+export const fetchForgingData = () => (dispatch, getState) => {
   const apiClient = getAPIClient(tokenMap.LSK.key, getState());
   liskServiceApi.getNextForgers(apiClient).then((response) => {
     const normalizedData = response.reduce((acc, key, idx) => {
@@ -31,4 +31,6 @@ const fetchForgingData = () => (dispatch, getState) => {
   });
 };
 
-export default fetchForgingData;
+export const concealForgingData = () => ({
+  type: actionTypes.concealForgingData,
+});

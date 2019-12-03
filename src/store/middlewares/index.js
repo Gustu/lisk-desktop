@@ -9,6 +9,7 @@ import votingMiddleware from './voting';
 import socketMiddleware from './socket';
 import settingsMiddleware from './settings';
 import bookmarksMiddleware from './bookmarks';
+import forgingMiddleware from './forging';
 
 export default [
   // notificationMiddleware,
@@ -21,4 +22,5 @@ export default [
   socketMiddleware,
   thunk,
   votingMiddleware,
+  forgingMiddleware,
 ];

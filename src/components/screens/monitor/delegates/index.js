@@ -13,14 +13,21 @@ import withForgingStatus from './withForgingStatus';
 import withLocalSort from '../../../../utils/withLocalSort';
 import withResizeValues from '../../../../utils/withResizeValues';
 import NotAvailable from '../notAvailable';
+import { fetchForgingData, concealForgingData } from '../../../../actions/forging';
 
 const defaultUrlSearchParams = { search: '' };
 const delegatesKey = 'delegates';
 const standByDelegatesKey = 'standByDelegates';
 
-const mapStateToProps = ({ blocks: { latestBlocks } }) => ({
-  latestBlocks,
+const mapStateToProps = state => ({
+  latestBlocks: state.blocks.latestBlocks,
+  nextForgers: state.forging.nextForgers,
 });
+
+const mapDispatchToProps = {
+  fetchForgingData,
+  concealForgingData,
+};
 
 const transformResponse = (response, oldData, urlSearchParams) => (
   urlSearchParams.offset
@@ -88,7 +95,7 @@ const ComposedDelegates = compose(
   ),
   withResizeValues,
   withFilters(standByDelegatesKey, defaultUrlSearchParams),
-  connect(mapStateToProps),
+  connect(mapStateToProps, mapDispatchToProps),
   withForgingStatus(delegatesKey),
   withLocalSort(delegatesKey, 'rank:asc'),
   withTranslation(),
