@@ -1,5 +1,5 @@
 import actionTypes from '../../constants/actions';
-import fetchForgingData from '../../actions/forging';
+import { fetchForgingData } from '../../actions/forging';
 
 const intervalTime = 5000;
 let interval;
