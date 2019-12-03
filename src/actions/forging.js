@@ -6,20 +6,24 @@ import { tokenMap } from '../constants/tokens';
 const fetchForgingData = () => (dispatch, getState) => {
   const apiClient = getAPIClient(tokenMap.LSK.key, getState());
   liskServiceApi.getNextForgers(apiClient).then((response) => {
-    const normalizedData = response.data.reduce((acc, key) => {
-      // TODO: Change status timestamp format
+    const normalizedData = response.reduce((acc, key, idx) => {
       // TODO: What if state.blocks is empty?
-      const status = getState().blocks
-        .find(block => block.generatorPublicKey === key.publicKey).timestamp;
+      const lastBlockForged = getState().blocks.latestBlocks
+        .find(block => block.generatorPublicKey === key.publicKey);
+
       return {
-        ...acc,
-        [key.username]: {
-          status,
-          // TODO: Get forgingTime
-          forgingTime: undefined,
+        delegates: {
+          ...acc.delegates,
+          [key.username]: {
+            lastBlockHeight: lastBlockForged && lastBlockForged.height,
+            lastBlockTimestamp: lastBlockForged && lastBlockForged.timestamp,
+            // TODO: Get forgingTime
+            forgingTime: undefined,
+          },
         },
+        nextForgers: idx < 10 ? [...acc.nextForgers, key.username] : [...acc.nextForgers],
       };
-    }, {});
+    }, { delegates: {}, nextForgers: [] });
     dispatch({
       type: actionTypes.displayForgingData,
       data: normalizedData,
