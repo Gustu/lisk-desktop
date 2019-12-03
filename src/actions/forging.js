@@ -1,8 +1,11 @@
 import actionTypes from '../constants/actions';
 import liskServiceApi from '../utils/api/lsk/liskService';
+import { getAPIClient } from '../utils/api/network';
+import { tokenMap } from '../constants/tokens';
 
 const fetchForgingData = () => (dispatch, getState) => {
-  liskServiceApi.getNextForgers().then((response) => {
+  const apiClient = getAPIClient(tokenMap.LSK.key, getState());
+  liskServiceApi.getNextForgers(apiClient).then((response) => {
     const normalizedData = response.data.reduce((acc, key) => {
       // TODO: Change status timestamp format
       const status = getState().blocks
