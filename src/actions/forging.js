@@ -8,6 +8,7 @@ const fetchForgingData = () => (dispatch, getState) => {
   liskServiceApi.getNextForgers(apiClient).then((response) => {
     const normalizedData = response.data.reduce((acc, key) => {
       // TODO: Change status timestamp format
+      // TODO: What if state.blocks is empty?
       const status = getState().blocks
         .find(block => block.generatorPublicKey === key.publicKey).timestamp;
       return {
