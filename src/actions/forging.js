@@ -21,7 +21,9 @@ export const fetchForgingData = () => (dispatch, getState) => {
             forgingTime: undefined,
           },
         },
-        nextForgers: idx < 10 ? [...acc.nextForgers, key.username] : [...acc.nextForgers],
+        nextForgers: idx < 10
+          ? [...acc.nextForgers, { username: key.username, address: key.address }]
+          : [...acc.nextForgers],
       };
     }, { delegates: {}, nextForgers: [] });
     dispatch({

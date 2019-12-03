@@ -33,10 +33,9 @@ const ForgingDetails = ({ t, networkStatus, nextForgers }) => {
             <h3>{t('Next forgers')}</h3>
             <div className={styles.contentBody}>
               {nextForgers && nextForgers.map((forger, i) => (
-                <span key={forger}>
-                  {/* TODO: get forger address */}
-                  <Link className="next-forger" to={`${routes.accounts.path}/${forger}`}>
-                    {forger}
+                <span key={forger.address}>
+                  <Link className="next-forger" to={`${routes.accounts.path}/${forger.address}`}>
+                    {forger.username}
                   </Link>
                   {i !== nextForgers.length - 1 ? ', ' : ''}
                 </span>
