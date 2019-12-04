@@ -31,6 +31,7 @@ const Delegates = ({
   fetchForgingData,
   nextForgers,
   latestBlock,
+  activeDelegates,
 }) => {
   const [activeTab, setActiveTab] = useState('active');
   const statuses = {
@@ -147,6 +148,23 @@ const Delegates = ({
     return () => concealForgingData();
   });
 
+  // Modify the table data so that status and forging time are taken from the store
+  const modifiedDelegatesData = delegates && [...delegates.data].map((delegate) => {
+    const forgingData = activeDelegates && activeDelegates[delegate.publicKey];
+    return ({
+      ...delegate,
+      forgingTime: forgingData && forgingData.forgingTime,
+      status: forgingData && forgingData.status,
+      lastBlockHeight: forgingData && forgingData.lastBlockHeight,
+      lastBlockTimestamp: forgingData && forgingData.lastBlockTimestamp,
+    });
+  });
+
+  const modifiedDelegates = {
+    ...delegates,
+    data: modifiedDelegatesData,
+  };
+
   return (
     <div>
       <MonitorHeader />
@@ -166,7 +184,7 @@ const Delegates = ({
       />
       <DelegatesTable {...{
         columns,
-        delegates,
+        delegates: modifiedDelegates,
         tabs,
         filters,
         applyFilters,

@@ -22,6 +22,7 @@ const standByDelegatesKey = 'standByDelegates';
 const mapStateToProps = state => ({
   latestBlocks: state.blocks.latestBlocks,
   nextForgers: state.forging.nextForgers,
+  activeDelegates: state.forging.delegates,
 });
 
 const mapDispatchToProps = {
