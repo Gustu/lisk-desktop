@@ -9,7 +9,18 @@ import { initialLSKSupply, tokenMap } from '../../../../constants/tokens';
 import LiskAmount from '../../../shared/liskAmount';
 import routes from '../../../../constants/routes';
 
-const ForgingDetails = ({ t, networkStatus, nextForgers }) => {
+const ForgingDetails = ({
+  t, networkStatus, nextForgers, latestBlock, activeDelegates,
+}) => {
+  if (Array.isArray(activeDelegates)) {
+    activeDelegates = activeDelegates.reduce((acc, key) => ({
+      ...acc,
+      [key.publicKey]: {
+        ...key,
+      },
+    }), {});
+  }
+
   const totalForged = networkStatus && networkStatus.data.supply - initialLSKSupply;
 
   return (
@@ -44,7 +55,11 @@ const ForgingDetails = ({ t, networkStatus, nextForgers }) => {
           </div>
           <div className={`${grid['col-sm-4']} ${styles.content}`}>
             <h3>{t('Last forger')}</h3>
-            <div className={styles.contentBody} />
+            <div className={styles.contentBody}>
+              {latestBlock && !Array.isArray(activeDelegates) && (
+                <Link to={`${routes.accounts.path}/${latestBlock.generatorAddress}`}>{activeDelegates[latestBlock.generatorPublicKey] && activeDelegates[latestBlock.generatorPublicKey].username}</Link>
+              )}
+            </div>
           </div>
         </div>
       </BoxContent>

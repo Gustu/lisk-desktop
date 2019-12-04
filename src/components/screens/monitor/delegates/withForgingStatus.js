@@ -195,6 +195,7 @@ const withForgingStatus = delegatesKey => (ChildComponent) => {
       return (
         <ChildComponent {...{
           ...rest,
+          latestBlock: latestBlocks[0],
           [delegatesKey]: {
             ...this.props[delegatesKey],
             data: this.getDelegatesData(),

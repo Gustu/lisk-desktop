@@ -30,6 +30,7 @@ const Delegates = ({
   networkStatus,
   fetchForgingData,
   nextForgers,
+  latestBlock,
 }) => {
   const [activeTab, setActiveTab] = useState('active');
   const statuses = {
@@ -158,7 +159,9 @@ const Delegates = ({
       />
       <ForgingDetails
         t={t}
+        latestBlock={latestBlock}
         networkStatus={networkStatus}
+        activeDelegates={[...delegates.data]}
         nextForgers={nextForgers}
       />
       <DelegatesTable {...{
