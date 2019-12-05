@@ -13,7 +13,7 @@ import withForgingStatus from './withForgingStatus';
 import withLocalSort from '../../../../utils/withLocalSort';
 import withResizeValues from '../../../../utils/withResizeValues';
 import NotAvailable from '../notAvailable';
-import { fetchForgingData, concealForgingData } from '../../../../actions/forging';
+import { displayForgedData, concealForgingData } from '../../../../actions/forging';
 
 const defaultUrlSearchParams = { search: '' };
 const delegatesKey = 'delegates';
@@ -26,7 +26,7 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = {
-  fetchForgingData,
+  displayForgedData,
   concealForgingData,
 };
 

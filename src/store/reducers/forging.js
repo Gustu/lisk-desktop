@@ -7,6 +7,11 @@ const forging = (state = {}, action) => {
         ...state,
         ...action.data,
       };
+    case actionTypes.displayForgedData:
+      return {
+        ...state,
+        delegates: action.data,
+      };
     default:
       return state;
   }
