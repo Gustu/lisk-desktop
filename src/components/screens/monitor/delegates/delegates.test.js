@@ -69,6 +69,7 @@ describe('Delegates monitor page', () => {
         tab: 'active',
       },
       applyFilters: jest.fn(filters => wrapper.setProps({ filters })),
+      fetchForgingData: jest.fn(),
     };
 
     delegatesWithData = {
