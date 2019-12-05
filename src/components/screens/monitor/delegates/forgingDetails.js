@@ -56,8 +56,8 @@ const ForgingDetails = ({
           <div className={`${grid['col-sm-4']} ${styles.content}`}>
             <h3>{t('Last forger')}</h3>
             <div className={styles.contentBody}>
-              {latestBlock && !Array.isArray(activeDelegates) && (
-                <Link to={`${routes.accounts.path}/${latestBlock.generatorAddress}`}>{activeDelegates[latestBlock.generatorPublicKey] && activeDelegates[latestBlock.generatorPublicKey].username}</Link>
+              {latestBlock && activeDelegates && !Array.isArray(activeDelegates) && (
+                <Link className="last-forger" to={`${routes.accounts.path}/${latestBlock.generatorAddress}`}>{activeDelegates[latestBlock.generatorPublicKey] && activeDelegates[latestBlock.generatorPublicKey].username}</Link>
               )}
             </div>
           </div>
