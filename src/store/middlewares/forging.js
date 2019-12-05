@@ -6,13 +6,14 @@ let interval;
 
 const forgingMiddleware = store => next => (action) => {
   switch (action.type) {
-    case actionTypes.displayForgedData:
+    case actionTypes.displayForgingData:
       // The 5-sec interval allows to catch missed blocks by delegates
       // before the next forging takes place
       next(action);
-      store.dispatch(fetchForgingData());
       clearInterval(interval);
-      interval = setInterval(() => store.dispatch(fetchForgingData()), intervalTime);
+      interval = setInterval(() => {
+        store.dispatch(fetchForgingData());
+      }, intervalTime);
       break;
     case actionTypes.concealForgingData:
       next(action);

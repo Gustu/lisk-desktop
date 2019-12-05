@@ -129,21 +129,6 @@ const withForgingStatus = delegatesKey => (ChildComponent) => {
       ).value;
     }
 
-    getForgingStatus(delegate) {
-      const { latestBlocks } = this.props;
-      const lastBlock = this.getLastBlock(delegate);
-      if (latestBlocks.length >= this.blocksFetchLimit * 2 && !lastBlock) {
-        setTimeout(() => {
-          // This timeout is used to prevent too many requests at once.
-          // It loads delegates with lower rank sooner as they are more likely above the fold.
-          this.requestLastBlock(delegate);
-        }, delegate.rank * 100);
-      }
-      return (delegate.rank <= voting.numberOfActiveDelegates && lastBlock && lastBlock.height)
-        ? this.mapDelegateLastBlockToStatus(lastBlock)
-        : '';
-    }
-
     getLastBlock(delegate) {
       const { latestBlocks } = this.props;
       return latestBlocks.find(b => b.generatorPublicKey === delegate.publicKey)
@@ -155,11 +140,11 @@ const withForgingStatus = delegatesKey => (ChildComponent) => {
       const { activeDelegates } = this.props;
       return data.map(delegate => ({
         ...delegate,
-        status: activeDelegates && activeDelegates[delegate.publicKey]
-          && activeDelegates[delegate.publicKey].status,
+        status: activeDelegates && (activeDelegates[delegate.publicKey]
+          ? activeDelegates[delegate.publicKey].status : 'missedLastRound'),
         lastBlock: this.getLastBlock(delegate),
-        forgingTime: activeDelegates && activeDelegates[delegate.publicKey]
-          && activeDelegates[delegate.publicKey].forgingTime,
+        forgingTime: activeDelegates && (activeDelegates[delegate.publicKey]
+          ? activeDelegates[delegate.publicKey].forgingTime : 'Missed block'),
       }));
     }
 

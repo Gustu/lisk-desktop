@@ -28,7 +28,7 @@ const Delegates = ({
   standByDelegates,
   t,
   networkStatus,
-  displayForgedData,
+  fetchForgingData,
   nextForgers,
   latestBlock,
   activeDelegates,
@@ -142,7 +142,7 @@ const Delegates = ({
     : standByDelegates;
 
   useEffect(() => {
-    if (!activeDelegates) displayForgedData();
+    if (!activeDelegates) fetchForgingData();
     return () => concealForgingData();
   });
 

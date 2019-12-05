@@ -4,63 +4,70 @@ import { getAPIClient } from '../utils/api/network';
 import { tokenMap } from '../constants/tokens';
 import voting from '../constants/voting';
 
-export const displayForgedData = () => async (dispatch, getState) => {
-  const apiClient = getAPIClient(tokenMap.LSK.key, getState());
-  const latestBlocks = getState().blocks.latestBlocks.length >= 100
-    ? getState().blocks.latestBlocks
-    : await liskServiceApi.getLastBlocks(apiClient, { limit: 100 });
+const getForgingTime = ({ idx, isInThePast }) => (
+  Math.floor((idx * 10) / 60) !== 0
+    ? `${Math.floor((idx * 10) / 60)} min ${(idx * 10) % 60} sec${isInThePast ? ' ago' : ''}`
+    : `${(idx * 10) % 60} sec${isInThePast ? ' ago' : ''}`
+);
 
+export const fetchForgingData = () => async (dispatch, getState) => {
+  const { latestBlocks } = getState().blocks;
   const numberOfForgedBlocksInRound = latestBlocks[0]
     && latestBlocks[0].height % voting.numberOfActiveDelegates;
-  const forgedBlocksInRound = latestBlocks.slice(0, numberOfForgedBlocksInRound);
-  const forgingData = forgedBlocksInRound.reduce((acc, block, idx) => {
-    const forgingTime = Math.floor(idx * 10 / 60) !== 0
-      ? `${Math.floor(idx * 10 / 60)} min ${(idx * 10) % 60} sec ago`
-      : `${(idx * 10) % 60} sec ago`;
+  const forgedBlocksInRound = latestBlocks.slice(
+    0,
+    numberOfForgedBlocksInRound,
+  );
+  const numberOfRemainingBlocksInRound = voting.numberOfActiveDelegates
+    - numberOfForgedBlocksInRound;
+  const apiClient = getAPIClient(tokenMap.LSK.key, getState());
+  const nextForgers = await liskServiceApi.getNextForgers(apiClient, {
+    limit:
+      numberOfRemainingBlocksInRound < 101 ? numberOfForgedBlocksInRound : 100,
+  });
+  const remainingForgers = nextForgers.slice(0, numberOfRemainingBlocksInRound);
 
-    return {
-      ...acc,
+  const forgedData = forgedBlocksInRound.reduce((acc, block, idx) => ({
+    ...acc,
+    delegates: {
+      ...acc.delegates,
       [block.generatorPublicKey]: {
-        forgingTime,
+        forgingTime: getForgingTime({ idx, isInThePast: true }),
         status: 'forgedThisRound',
       },
-    };
-  }, {});
+    },
+  }), { delegates: {} });
+
+
+  const toForgeData = remainingForgers.reduce(
+    (acc, forger, idx) => ({
+      delegates: {
+        ...acc.delegates,
+        [forger.publicKey]: {
+          forgingTime: idx < numberOfRemainingBlocksInRound && getForgingTime({ idx }),
+          status: idx < numberOfRemainingBlocksInRound && 'forgedLastRound',
+        },
+      },
+      nextForgers:
+          idx < 10
+            ? [
+              ...acc.nextForgers,
+              { username: forger.username, address: forger.address },
+            ]
+            : [...acc.nextForgers],
+    }),
+    { delegates: {}, nextForgers: [] },
+  );
 
   dispatch({
-    type: actionTypes.displayForgedData,
-    data: forgingData,
-  });
-};
-
-export const fetchForgingData = () => (dispatch, getState) => {
-  const { latestBlocks } = getState().blocks;
-  const lastBlockHeight = latestBlocks[0] && latestBlocks[0].height;
-  const forgedBlocksInRound = lastBlockHeight % voting.numberOfActiveDelegates;
-  const apiClient = getAPIClient(tokenMap.LSK.key, getState());
-
-  liskServiceApi.getNextForgers(apiClient, { limit: 100 }).then((response) => {
-    const forgingData = response.reduce((acc, forger, idx) => {
-      const forgingTime = Math.floor(idx * 10 / 60) !== 0
-        ? `${Math.floor(idx * 10 / 60)} min ${(idx * 10) % 60} sec`
-        : `${(idx * 10) % 60} sec`;
-      return ({
-        delegates: {
-          ...acc.delegates,
-          [forger.publicKey]: {
-            forgingTime: idx < forgedBlocksInRound && forgingTime,
-            status: idx < forgedBlocksInRound && 'forgedLastRound',
-          },
-        },
-        nextForgers: idx < 10
-          ? [...acc.nextForgers, { username: forger.username, address: forger.address }]
-          : [...acc.nextForgers],
-      });
-    }, { delegates: {}, nextForgers: [] });
-    dispatch({
-      type: actionTypes.displayForgingData,
-      data: forgingData,
-    });
+    type: actionTypes.displayForgingData,
+    data: {
+      delegates: {
+        ...forgedData.delegates,
+        ...toForgeData.delegates,
+      },
+      nextForgers: toForgeData.nextForgers,
+    },
   });
 };
 
