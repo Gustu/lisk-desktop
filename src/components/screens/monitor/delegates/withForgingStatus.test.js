@@ -97,15 +97,6 @@ describe('withForgingStatus', () => {
     );
   });
 
-  it('should load last block of "Not forging" delegate', () => {
-    setup({ latestBlocks: generateBlocks() });
-    jest.runAllTimers();
-    expect(liskService.getLastBlocks).toHaveBeenCalledWith(
-      { networkConfig: defaultState.network },
-      { limit: 1, address: notForgingDelegate.publicKey },
-    );
-  });
-
   it('update last blocks of generator of new block on new block', () => {
     const latestBlocks = generateBlocks({ limit: 201 });
     const newBlock = generateBlock(latestBlocks.length + 1);
@@ -139,47 +130,5 @@ describe('withForgingStatus', () => {
       { networkConfig: defaultState.network },
       { limit: 100 },
     );
-  });
-
-  it('marks delegate as forgedThisRound if it has a block in the current round round', () => {
-    const wrapper = setup({ latestBlocks: generateBlocks() });
-    expect(wrapper.find(`.${forgingDelegates[0].username} .status`)).toHaveText('forgedThisRound');
-  });
-
-  it('marks delegate as forgedLastRound if its last block is in previous round', (done) => {
-    const latestBlocks = setupLatestBlocks({ lastBlockHeightAgo: 1 });
-    const wrapper = setup({ latestBlocks });
-    jest.runAllTimers();
-    // TODO refactor this as should be a better way to test it https://stackoverflow.com/a/43855794
-    setImmediate(() => {
-      expect(wrapper.find(`.${notForgingDelegate.username} .status`)).toHaveText('forgedLastRound');
-      done();
-    });
-  });
-
-  it('marks delegate as missedLastRound if its last block 2 rounds ago', (done) => {
-    const latestBlocks = setupLatestBlocks({
-      lastBlockHeightAgo: voting.numberOfActiveDelegates + 1,
-    });
-    const wrapper = setup({ latestBlocks });
-    jest.runAllTimers();
-    // TODO refactor this as should be a better way to test it https://stackoverflow.com/a/43855794
-    setImmediate(() => {
-      expect(wrapper.find(`.${notForgingDelegate.username} .status`)).toHaveText('missedLastRound');
-      done();
-    });
-  });
-
-  it('marks delegate as notForging if its last block is older than 2 rounds', (done) => {
-    const latestBlocks = setupLatestBlocks({
-      lastBlockHeightAgo: voting.numberOfActiveDelegates * 2 + 1,
-    });
-    const wrapper = setup({ latestBlocks });
-    jest.runAllTimers();
-    // TODO refactor this as should be a better way to test it https://stackoverflow.com/a/43855794
-    setImmediate(() => {
-      expect(wrapper.find(`.${notForgingDelegate.username} .status`)).toHaveText('notForging');
-      done();
-    });
   });
 });
