@@ -1,6 +1,5 @@
 import { connect } from 'react-redux';
 import React from 'react';
-import moment from 'moment';
 import { convertUnixSecondsToLiskEpochSeconds } from '../../../../utils/datetime';
 import { olderBlocksRetrieved } from '../../../../actions/blocks';
 import liskService from '../../../../utils/api/lsk/liskService';
@@ -75,7 +74,6 @@ const withForgingStatus = delegatesKey => (ChildComponent) => {
         nextForgers: nextForgers.reduce((accumulator, delegate, i) => ({
           ...accumulator,
           [delegate.publicKey]: {
-            forgingTime: moment().add(i * 10, 'seconds'),
             nextHeight: height + i + 1,
           },
         }), {}),
@@ -90,7 +88,6 @@ const withForgingStatus = delegatesKey => (ChildComponent) => {
           nextForgers: {
             ...this.state.nextForgers,
             [newBlock.generatorPublicKey]: {
-              forgingTime: moment().add(voting.numberOfActiveDelegates * 10, 'seconds'),
               nextHeight: newBlock.leight + voting.numberOfActiveDelegates,
             },
           },
@@ -155,11 +152,14 @@ const withForgingStatus = delegatesKey => (ChildComponent) => {
 
     getDelegatesData() {
       const { data } = this.props[delegatesKey];
+      const { activeDelegates } = this.props;
       return data.map(delegate => ({
         ...delegate,
-        status: this.getForgingStatus(delegate),
-        ...this.state.nextForgers[delegate.publicKey],
+        status: activeDelegates && activeDelegates[delegate.publicKey]
+          && activeDelegates[delegate.publicKey].status,
         lastBlock: this.getLastBlock(delegate),
+        forgingTime: activeDelegates && activeDelegates[delegate.publicKey]
+          && activeDelegates[delegate.publicKey].forgingTime,
       }));
     }
 

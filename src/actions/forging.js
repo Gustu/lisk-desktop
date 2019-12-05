@@ -4,8 +4,12 @@ import { getAPIClient } from '../utils/api/network';
 import { tokenMap } from '../constants/tokens';
 import voting from '../constants/voting';
 
-export const displayForgedData = () => (dispatch, getState) => {
-  const { latestBlocks } = getState().blocks;
+export const displayForgedData = () => async (dispatch, getState) => {
+  const apiClient = getAPIClient(tokenMap.LSK.key, getState());
+  const latestBlocks = getState().blocks.latestBlocks.length >= 100
+    ? getState().blocks.latestBlocks
+    : await liskServiceApi.getLastBlocks(apiClient, { limit: 100 });
+
   const numberOfForgedBlocksInRound = latestBlocks[0]
     && latestBlocks[0].height % voting.numberOfActiveDelegates;
   const forgedBlocksInRound = latestBlocks.slice(0, numberOfForgedBlocksInRound);

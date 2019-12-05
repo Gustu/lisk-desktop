@@ -28,7 +28,7 @@ const Delegates = ({
   standByDelegates,
   t,
   networkStatus,
-  fetchForgingData,
+  displayForgedData,
   nextForgers,
   latestBlock,
   activeDelegates,
@@ -68,9 +68,7 @@ const Delegates = ({
       header: t('Forging time'),
       headerTooltip: t('Time until next forging slot of a delegate.'),
       /* eslint-disable-next-line react/display-name */
-      getValue: ({ forgingTime }) => (forgingTime
-        ? moment(forgingTime.diff(moment())).format(t('m [min] s [sec]'))
-        : '-'),
+      getValue: ({ forgingTime }) => forgingTime || '-',
       className: `hidden-m ${grid['col-md-2']}`,
     },
     {
@@ -144,26 +142,9 @@ const Delegates = ({
     : standByDelegates;
 
   useEffect(() => {
-    if (!nextForgers) fetchForgingData();
+    if (!activeDelegates) displayForgedData();
     return () => concealForgingData();
   });
-
-  // Modify the table data so that status and forging time are taken from the store
-  const modifiedDelegatesData = delegates && [...delegates.data].map((delegate) => {
-    const forgingData = activeDelegates && activeDelegates[delegate.publicKey];
-    return ({
-      ...delegate,
-      forgingTime: forgingData && forgingData.forgingTime,
-      status: forgingData && forgingData.status,
-      lastBlockHeight: forgingData && forgingData.lastBlockHeight,
-      lastBlockTimestamp: forgingData && forgingData.lastBlockTimestamp,
-    });
-  });
-
-  const modifiedDelegates = {
-    ...delegates,
-    data: modifiedDelegatesData,
-  };
 
   return (
     <div>
@@ -184,7 +165,7 @@ const Delegates = ({
       />
       <DelegatesTable {...{
         columns,
-        delegates: modifiedDelegates,
+        delegates,
         tabs,
         filters,
         applyFilters,
