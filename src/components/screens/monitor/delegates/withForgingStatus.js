@@ -98,37 +98,6 @@ const withForgingStatus = delegatesKey => (ChildComponent) => {
       }
     }
 
-    mapDelegateLastBlockToStatus(lastBlock) {
-      const { latestBlocks } = this.props;
-      const height = latestBlocks[0] && latestBlocks[0].height;
-      const roundStartHeight = height - (height % voting.numberOfActiveDelegates) + 1;
-      const statusRanges = [
-        {
-          min: Number.NEGATIVE_INFINITY,
-          max: roundStartHeight - voting.numberOfActiveDelegates * 2,
-          value: 'notForging',
-        },
-        {
-          min: roundStartHeight - voting.numberOfActiveDelegates * 2,
-          max: roundStartHeight - voting.numberOfActiveDelegates,
-          value: 'missedLastRound',
-        },
-        {
-          min: roundStartHeight - voting.numberOfActiveDelegates,
-          max: roundStartHeight,
-          value: 'forgedLastRound',
-        },
-        {
-          min: roundStartHeight,
-          max: Number.POSITIVE_INFINITY,
-          value: 'forgedThisRound',
-        },
-      ];
-      return statusRanges.find(
-        ({ min, max }) => min <= lastBlock.height && lastBlock.height < max,
-      ).value;
-    }
-
     getLastBlock(delegate) {
       const { latestBlocks } = this.props;
       return latestBlocks.find(b => b.generatorPublicKey === delegate.publicKey)
@@ -146,31 +115,6 @@ const withForgingStatus = delegatesKey => (ChildComponent) => {
         forgingTime: activeDelegates && (activeDelegates[delegate.publicKey]
           ? activeDelegates[delegate.publicKey].forgingTime : 'Missed block'),
       }));
-    }
-
-    async requestLastBlock(delegate) {
-      const lastBlock = this.getLastBlock(delegate);
-      if (!lastBlock && delegate.rank <= voting.numberOfActiveDelegates) {
-        const { network: networkConfig } = this.props;
-        this.setState({
-          lastBlocks: {
-            ...this.state.lastBlocks,
-            [delegate.publicKey]: { },
-          },
-        });
-        const blocks = await liskService.getLastBlocks(
-          { networkConfig }, { address: delegate.publicKey, limit: 1 },
-        );
-        this.setState({
-          lastBlocks: {
-            ...this.state.lastBlocks,
-            [delegate.publicKey]: {
-              ...blocks[0],
-              timestamp: convertUnixSecondsToLiskEpochSeconds(blocks[0].timestamp),
-            },
-          },
-        });
-      }
     }
 
     render() {
