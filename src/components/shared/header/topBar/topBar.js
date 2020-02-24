@@ -11,7 +11,6 @@ import networks from '../../../../constants/networks';
 import DropdownButton from '../../../toolbox/dropdownButton';
 import { SecondaryButton } from '../../../toolbox/buttons/button';
 import styles from './topBar.css';
-
 import Icon from '../../../toolbox/icon';
 import Autologout from './autologout/autologout';
 
@@ -83,10 +82,8 @@ class TopBar extends React.Component {
       resetTimer,
     } = this.props;
     const isSearchActive = (this.childRef && this.childRef.state.shownDropdown) || false;
-
     const items = menuLinks(t);
     const isUserLogout = !!(Object.keys(account).length === 0 || account.afterLogout);
-
     return (
       <div className={`${styles.wrapper} top-bar`}>
         <div>

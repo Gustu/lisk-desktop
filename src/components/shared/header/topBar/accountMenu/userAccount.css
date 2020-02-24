@@ -1,4 +1,3 @@
-@import '../../../../../app/variables.css';
 @import '../../../../../app/mixins.css';
 
 .wrapper {
@@ -62,7 +61,7 @@
 .signInHolder {
   width: 100%;
   height: 100%;
-  display: flex;
+  display: flex !important;
   justify-content: center;
   align-items: center;
   cursor: pointer;
@@ -72,8 +71,13 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-width: 280px;
-  padding: 5px 0;
+  padding: 5px 20px;
+  width: calc(100% - 40px);
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--color-rows-hover);
+  }
 
   & .accountInfo {
     padding: 0;
@@ -85,10 +89,14 @@
     align-items: center;
     background: var(--color-ultramarine-blue);
     border-radius: var(--border-radius-standard);
-    color: var(--color-white);
+    color: var(--color-strong-white);
     display: flex;
     margin-left: auto;
     padding: 0 8px;
+  }
+
+  & + a {
+    margin-top: 15px;
   }
 }
 
@@ -97,10 +105,6 @@
   top: calc(100% + 15px);
   min-width: 320px;
   width: auto;
-
-  & .separator {
-    margin: 10px auto;
-  }
 }
 
 .dropdownOption {

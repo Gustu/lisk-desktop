@@ -12,6 +12,11 @@ import env from './constants/env';
 import ipcLocale from './utils/ipcLocale';
 import newRelease from './utils/newRelease';
 
+if (env.development) {
+  const whyDidYouRender = require('@welldone-software/why-did-you-render'); //eslint-disable-line
+  whyDidYouRender(React);
+}
+
 if (env.production) {
   externalLinks.init();
 }
@@ -38,7 +43,7 @@ ReactDOM.render(renderWithRouter(App), rootElement);
 
 if (module.hot) {
   module.hot.accept('./app', () => {
-    const NextRootContainer = require('./app').default;
+    const NextRootContainer = require('./app').DevApp;
     ReactDOM.render(renderWithRouter(NextRootContainer), rootElement);
   });
 }

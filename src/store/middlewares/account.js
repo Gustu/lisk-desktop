@@ -8,17 +8,20 @@ import {
   getTransactions,
   updateTransactions,
 } from '../../actions/transactions';
+import { fromRawLsk } from '../../utils/lsk';
 import { getActiveTokenAccount } from '../../utils/account';
 import { getAutoLogInData, shouldAutoLogIn, findMatchingLoginNetwork } from '../../utils/login';
 import { loadVotes } from '../../actions/voting';
 import { networkSet, networkStatusUpdated } from '../../actions/network';
 import actionTypes from '../../constants/actions';
 import analytics from '../../utils/analytics';
+import i18n from '../../i18n';
 import localJSONStorage from '../../utils/localJSONStorage';
 import networks from '../../constants/networks';
 import settings from '../../constants/settings';
 import transactionTypes from '../../constants/transactionTypes';
 import txFilters from '../../constants/transactionFilters';
+import { txAdapter } from '../../utils/api/lsk/adapters';
 
 const updateAccountData = (store) => {
   const { transactions } = store.getState();
@@ -54,7 +57,10 @@ const getRecentTransactionOfType = (transactionsList, type) => (
 );
 
 const votePlaced = (store, action) => {
-  const voteTransaction = getRecentTransactionOfType(action.data.confirmed, transactionTypes.vote);
+  const voteTransaction = getRecentTransactionOfType(
+    action.data.confirmed,
+    transactionTypes().vote.code,
+  );
 
   if (voteTransaction) {
     const state = store.getState();
@@ -67,6 +73,23 @@ const votePlaced = (store, action) => {
   }
 };
 
+const filterIncommingTransactions = (transactions, account) => transactions.filter(transaction => (
+  transaction && transaction.recipientId === account.address
+));
+
+const showNotificationsForIncomingTransactions = (transactions, account, token) => {
+  filterIncommingTransactions(transactions, account).forEach((transaction) => {
+    const amount = fromRawLsk(transaction.amount);
+    const message = transaction.asset && transaction.asset.data
+      ? i18n.t('with message {{message}}', { message: transaction.asset.data })
+      : '';
+    // eslint-disable-next-line no-new
+    new Notification(i18n.t('{{amount}} {{token}} Recieved', { amount, token }), {
+      body: i18n.t('Your account just received {{amount}} {{token}} {{message}}', { amount, token, message }),
+    });
+  });
+};
+
 const checkTransactionsAndUpdateAccount = (store, action) => {
   const state = store.getState();
   const { transactions, settings: { token } } = state;
@@ -74,10 +97,13 @@ const checkTransactionsAndUpdateAccount = (store, action) => {
 
   const txs = action.data.block.transactions || [];
   const blockContainsRelevantTransaction = txs.filter((transaction) => {
-    const sender = transaction ? transaction.senderId : null;
-    const recipient = transaction ? transaction.recipientId : null;
+    const morphedTx = txAdapter(transaction);
+    const sender = morphedTx ? morphedTx.senderId : null;
+    const recipient = morphedTx ? morphedTx.recipientId : null;
     return account.address === recipient || account.address === sender;
   }).length > 0;
+
+  showNotificationsForIncomingTransactions(txs, account, token.active);
 
   const recentBtcTransaction = token.active === 'BTC'
     && transactions.confirmed.filter(t => t.confirmations === 1).length > 0;
@@ -89,7 +115,6 @@ const checkTransactionsAndUpdateAccount = (store, action) => {
     // https://github.com/LiskHQ/lisk-desktop/pull/1609
     setTimeout(() => {
       updateAccountData(store);
-
       store.dispatch(updateTransactions({
         pendingTransactions: transactions.pending,
         address: account.address,
@@ -112,7 +137,7 @@ const getNetworkFromLocalStorage = () => {
 };
 
 // eslint-disable-next-line max-statements
-const checkNetworkToConnet = (storeSettings) => {
+const checkNetworkToConnect = (storeSettings) => {
   const autologinData = getAutoLogInData();
   let loginNetwork = findMatchingLoginNetwork();
 
@@ -166,7 +191,7 @@ const autoLogInIfNecessary = async (store) => {
   const actualSettings = store && store.getState().settings;
   const autologinData = getAutoLogInData();
 
-  const loginNetwork = checkNetworkToConnet(actualSettings);
+  const loginNetwork = checkNetworkToConnect(actualSettings);
 
   store.dispatch(await networkSet(loginNetwork));
   store.dispatch(networkStatusUpdated({ online: true }));

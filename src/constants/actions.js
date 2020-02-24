@@ -43,8 +43,6 @@ const actionTypes = {
   showEmptyNewsFeed: 'SHOW_EMPTY_NEWS_FEED',
   storeCreated: 'STORE_CREATED',
   switchChannel: 'SWITCH_CHANNEL',
-  toastDisplayed: 'TOAST_DISPLAYED',
-  toastHidden: 'TOAST_HIDDEN',
   transactionAddDelegateName: 'TRANSACTION_ADD_DELEGATE_NAME',
   transactionCleared: 'TRANSACTION_CLEARED',
   transactionFailed: 'TRANSACTION_FAILED',
@@ -66,6 +64,9 @@ const actionTypes = {
   resetTransactionResult: 'RESET_TRANSACTION_RESULTS',
   broadcastedTransactionSuccess: 'BROADCAST_TRANSACTION_SUCCESS',
   broadcastedTransactionError: 'BROADCASTED_TRANSACTION_ERROR',
+  forgingTimesRetrieved: 'FORGING_TIME_RETRIEVED',
+  forgingDataDisplayed: 'FORGING_DATA_DISPLAYED',
+  forgingDataConcealed: 'FORGING_DATA_CONCEALED',
 };
 
 export default actionTypes;

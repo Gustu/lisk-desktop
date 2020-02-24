@@ -102,23 +102,23 @@ or "warn/action" ineastd of "red/green"
   --color-mystic: #edf0f5;
   --color-white-smoke: #f5f7fa;
   --color-burnt-sienna: #ec6868;
-  --color-ufo-green: #2bd67b;
+  --color-ufo-green: #00a04b;
   --color-deep-green: #00d563;
 
   /*************************
       Other Colors
   *************************/
+  --color-body-bg: var(--color-mystic);
   --light-border-color: rgba(255, 255, 255, 0.24);
   --overlay-color: rgba(255, 255, 255, 0.8);
   --dark-border-color: rgba(0, 0, 0, 0.08);
-  --primary-background-color: color(var(--color-ultramarine-blue) a(8%));
+  --primary-background-color: rgba(64, 112, 244, 0.08);
   --error-background-color: var(--color-burnt-sienna);
-  --color-dialog-mask: color(var(--color-maastricht-blue) a(52%));
+  --color-dialog-bg: rgba(12, 21, 46, 0.52);
   --color-primary-standard: var(--color-ultramarine-blue);
   --color-primary-light: #9db8fa;
   --color-white: #fff;
   --color-danger: #ff7721;
-  --color-error: #ec6868;
   --color-content: #19224d;
   --color-content-light: #0c152e;
   --color-primary-very-light: #e8f0fa;
@@ -133,13 +133,21 @@ or "warn/action" ineastd of "red/green"
   --color-link-active: #4070f4;
   --color-title-header-box: #4c4c4c;
   --color-link: var(--color-primary-standard);
-  --color-rows-hover: var(--primary-background-color);
+  --color-rows-hover: rgba(64, 112, 244, 0.08);
   --color-highlight-checkboxes: rgba(64, 112, 244, 0.08);
+  --color-onboarding-bg: var(--color-maastricht-blue);
+  --color-strong-white: var(--color-white);
+  --color-flash-message: var(--color-maastricht-blue);
+  --color-strong-mystic: var(--color-mystic);
+  --color-passphrase-bg: var(--color-white);
+  --color-shadow-word-option: var(--color-ultramarine-blue);
+  --color-request-textarea: transparent;
 
   /*************************
         Box
   *************************/
   --box-shadow-standard: 0 2px 4px 0 rgba(6, 22, 48, 0.06);
+  --box-shadow-word-option: 0 2px 4px 0 rgba(6, 22, 48, 0.1);
   --box-shadow-button: var(--box-shadow-standard), 0px 0px 12px 0 rgba(72, 77, 97, 0.05);
   --box-shadow-header: 0 2px 4px 0 rgba(15, 25, 42, 0.02);
   --box-shadow-avatar: var(--box-shadow-standard);
@@ -177,10 +185,34 @@ or "warn/action" ineastd of "red/green"
   /*************************
         Media Queries
   *************************/
-  @custom-media --xLarge-viewport (min-width: 1400px);
-  @custom-media --large-viewport (max-width: 1400px);
-  @custom-media --medium-viewport (max-width: 1024px);
-  @custom-media --small-viewport (max-width: 768px);
-  @custom-media --xSmall-viewport (max-width: 414px);
-  @custom-media --xxSmall-viewport (max-width: 320px);
+}
+
+@custom-media --xLarge-viewport (min-width: 1400px);
+@custom-media --large-viewport (max-width: 1400px);
+@custom-media --medium-viewport (max-width: 1024px);
+@custom-media --small-viewport (max-width: 768px);
+@custom-media --xSmall-viewport (max-width: 414px);
+@custom-media --xxSmall-viewport (max-width: 320px);
+
+:root [data-theme="dark"] {
+  --box-shadow-standard: 0 2px 4px 0 rgba(6, 22, 48, 0.06);
+  --box-shadow-word-option: 0 0 1px 0 #fff;
+  --color-dialog-bg: rgba(28, 28, 30, 0.8);
+  --color-white: #111112;
+  --color-platinum: #4d4d50;
+  --color-white-smoke: #1c1c1c;
+  --color-maastricht-blue: #fff;
+  --dark-border-color: #373739;
+  --color-mystic: #4d4d50;
+  --color-body-bg: #000;
+  --color-onboarding-bg: #1c1c1e;
+  --color-rows-hover: #1c1c1e;
+  --overlay-color: rgba(28, 28, 30, 0.8);
+  --color-content-light: #fff;
+  --color-flash-message: var(--color-white-smoke);
+  --color-strong-mystic: #edf0f5;
+  --color-passphrase-bg: #000;
+  --color-dark-blue: var(--color-ultramarine-blue);
+  --color-shadow-word-option: var(--color-strong-white);
+  --color-request-extarea: #2e2e30;
 }

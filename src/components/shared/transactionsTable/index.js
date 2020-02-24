@@ -1,37 +1,32 @@
-import React from 'react';
 import { withTranslation } from 'react-i18next';
-import grid from 'flexboxgrid/dist/flexboxgrid.css';
-import { DateTimeFromTimestamp } from '../../toolbox/timestamp';
-import { tokenMap } from '../../../constants/tokens';
+import React from 'react';
 import Box from '../../toolbox/box';
-import BoxHeader from '../../toolbox/box/header';
 import BoxContent from '../../toolbox/box/content';
-import BoxFooterButton from '../../toolbox/box/footerButton';
-import BoxEmptyState from '../../toolbox/box/emptyState';
-import Icon from '../../toolbox/icon';
-import Tooltip from '../../toolbox/tooltip/tooltip';
-import LiskAmount from '../liskAmount';
-import Illustration from '../../toolbox/illustration';
-import styles from './transactionsTable.css';
-import FilterDropdownButton from '../filterDropdownButton';
-import withResizeValues from '../../../utils/withResizeValues';
-import withFilters from '../../../utils/withFilters';
+import BoxHeader from '../../toolbox/box/header';
 import FilterBar from '../filterBar';
-import routes from '../../../constants/routes';
+import FilterDropdownButton from '../filterDropdownButton';
+import LoadLatestButton from '../loadLatestButton';
 import Table from '../../toolbox/table';
-import AccountVisualWithAddress from '../accountVisualWithAddress';
-import { DEFAULT_LIMIT } from '../../../constants/monitor';
-import { transactionNames } from '../../../constants/transactionTypes';
+import styles from './transactionsTable.css';
+import withFilters from '../../../utils/withFilters';
+import withResizeValues from '../../../utils/withResizeValues';
+import TransactionRow from './transactionRow';
+import header from './tableHeader';
 
-class TransactionsTable extends React.Component {
-  constructor(props) {
-    super(props);
-    this.handleLoadMore = this.handleLoadMore.bind(this);
-  }
-
-  handleLoadMore() {
-    const { transactions, filters, sort } = this.props;
-
+const TransactionsTable = ({
+  title,
+  transactions,
+  isLoadMoreEnabled,
+  t,
+  fields,
+  filters,
+  applyFilters,
+  clearFilter,
+  clearAllFilters,
+  changeSort,
+  sort,
+}) => {
+  const handleLoadMore = () => {
     transactions.loadData(Object.keys(filters).reduce((acc, key) => ({
       ...acc,
       ...(filters[key] && { [key]: filters[key] }),
@@ -39,158 +34,56 @@ class TransactionsTable extends React.Component {
       offset: transactions.data.length,
       sort,
     }));
-  }
+  };
 
-  render() {
-    const {
-      title,
-      transactions,
-      isLoadMoreEnabled,
-      t,
-      fields,
-      filters,
-      emptyStateMessage,
-      applyFilters,
-      clearFilter,
-      clearAllFilters,
-      changeSort,
-      sort,
-      isMediumViewPort,
-    } = this.props;
+  /* istanbul ignore next */
+  const formatters = {
+    height: value => `${t('Height')}: ${value}`,
+    type: value => `${t('Type')}: ${value}`,
+    sender: value => `${t('Sender')}: ${value}`,
+    recipient: value => `${t('Recipient')}: ${value}`,
+  };
 
-    const roundSize = 101;
-
-    const formatters = {
-      height: value => `${t('Height')}: ${value}`,
-      type: value => `${t('Type')}: ${value}`,
-      sender: value => `${t('Sender')}: ${value}`,
-      recipient: value => `${t('Recipient')}: ${value}`,
-    };
-
-    return (
-      <Box main isLoading={transactions.isLoading} className="transactions-box">
-        <BoxHeader>
-          <h1>{title}</h1>
-          <FilterDropdownButton
-            fields={fields}
-            filters={filters}
-            applyFilters={applyFilters}
-          />
-        </BoxHeader>
-        <FilterBar {...{
-          clearFilter, clearAllFilters, filters, formatters, t,
-        }}
+  return (
+    <Box main isLoading={transactions.isLoading} className="transactions-box">
+      <BoxHeader>
+        <h1>{title}</h1>
+        <FilterDropdownButton
+          fields={fields}
+          filters={filters}
+          applyFilters={applyFilters}
         />
-        {transactions.error ? (
-          <BoxContent>
-            <BoxEmptyState>
-              <Illustration name="emptyWallet" />
-              <h3>{emptyStateMessage || `${transactions.error}`}</h3>
-            </BoxEmptyState>
-          </BoxContent>
-        ) : (
-          <React.Fragment>
-            <BoxContent className={styles.content}>
-              <Table
-                getRowLink={transaction => `${routes.transactions.path}/${transaction.id}`}
-                onSortChange={changeSort}
-                sort={sort}
-                data={transactions.data}
-                columns={[
-                  {
-                    header: t('Sender'),
-                    className: grid['col-xs-3'],
-                    id: 'sender',
-                    getValue: transaction => (
-                      <AccountVisualWithAddress
-                        address={transaction.senderId}
-                        isMediumViewPort={isMediumViewPort}
-                        transactionSubject="senderId"
-                        transactionType={transaction.type}
-                        showBookmarkedAddress
-                      />
-                    ),
-                  },
-                  {
-                    header: t('Recipient'),
-                    className: grid['col-xs-3'],
-                    id: 'recipient',
-                    getValue: transaction => (
-                      <AccountVisualWithAddress
-                        address={transaction.recipientId}
-                        isMediumViewPort={isMediumViewPort}
-                        transactionSubject="recipientId"
-                        transactionType={transaction.type}
-                        showBookmarkedAddress
-                      />
-                    ),
-                  },
-                  {
-                    header: t('Date'),
-                    className: grid['col-xs-2'],
-                    id: 'timestamp',
-                    isSortable: true,
-                    getValue: transaction => (
-                      <DateTimeFromTimestamp time={transaction.timestamp * 1000} token="BTC" />
-                    ),
-                  },
-                  {
-                    header: t('Amount'),
-                    className: grid['col-xs-2'],
-                    id: 'amount',
-                    isSortable: true,
-                    getValue: transaction => (
-                      <LiskAmount val={transaction.amount} token={tokenMap.LSK.key} />
-                    ),
-                  },
-                  {
-                    header: t('Fee'),
-                    className: grid['col-xs-1'],
-                    id: 'fee',
-                    getValue: transaction => (
-                      <Tooltip
-                        title={t('Transaction')}
-                        className="showOnBottom"
-                        tooltipClassName={`${styles.tooltip} ${styles.tooltipOffset}`}
-                        content={<LiskAmount val={transaction.fee} token={tokenMap.LSK.key} />}
-                        size="s"
-                      >
-                        <p>{`${transaction.type} - ${transactionNames(t)[transaction.type]}`}</p>
-                      </Tooltip>
-                    ),
-                  },
-                  {
-                    header: t('Status'),
-                    className: grid['col-xs-1'],
-                    id: 'status',
-                    getValue: transaction => (
-                      <Tooltip
-                        title={transaction.confirmations > roundSize ? t('Confirmed') : t('Pending')}
-                        className="showOnLeft"
-                        tooltipClassName={`${styles.tooltip} ${styles.tooltipOffset}`}
-                        content={<Icon name={transaction.confirmations > roundSize ? 'approved' : 'pending'} />}
-                        size="s"
-                      >
-                        <p>{`${transaction.confirmations}/${roundSize} ${t('Confirmations')}`}</p>
-                      </Tooltip>
-                    ),
-                  },
-                ]}
-              />
-            </BoxContent>
-            {isLoadMoreEnabled
-              && !!transactions.data.length
-              && transactions.data.length % DEFAULT_LIMIT === 0 && (
-              <BoxFooterButton className="load-more" onClick={this.handleLoadMore}>
-                {t('Load more')}
-              </BoxFooterButton>
-            )}
-          </React.Fragment>
-        )}
-      </Box>
-    );
-  }
-}
+      </BoxHeader>
+      {isLoadMoreEnabled
+        && (
+        <LoadLatestButton
+          event="update.transactions.confirmed"
+          onClick={transactions.loadData}
+        >
+          {t('New transactions')}
+        </LoadLatestButton>
+        )
+      }
+      <FilterBar {...{
+        clearFilter, clearAllFilters, filters, formatters, t,
+      }}
+      />
+      <BoxContent className={styles.content}>
+        <Table
+          data={transactions.data}
+          isLoading={transactions.isLoading}
+          row={TransactionRow}
+          loadData={handleLoadMore}
+          additionalRowProps={{ t }}
+          header={header(changeSort, t)}
+          currentSort={sort}
+          canLoadMore
+          error={transactions.error}
+        />
+      </BoxContent>
+    </Box>
+  );
+};
 
 TransactionsTable.defaultProps = {
   isLoadMoreEnabled: false,
@@ -212,6 +105,8 @@ const defaultFilters = {
 
 const defaultSort = 'timestamp:desc';
 
-export default withFilters('transactions', defaultFilters, defaultSort)(
-  withResizeValues(withTranslation()(TransactionsTable)),
+export default withTranslation()(
+  withFilters('transactions', defaultFilters, defaultSort)(
+    withResizeValues(TransactionsTable),
+  ),
 );

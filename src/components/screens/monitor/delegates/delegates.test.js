@@ -1,22 +1,40 @@
 import React from 'react';
 import { mount } from 'enzyme';
+import { Provider } from 'react-redux';
+import fakeStore from '../../../../../test/unit-test-utils/fakeStore';
 import Delegates from './delegates';
-import delegates from '../../../../../test/constants/delegates';
+import delegatesList from '../../../../../test/constants/delegates';
+import * as blockActions from '../../../../actions/blocks';
 
-const transformToLiskServiceFormat = ({ account, ...delegate }) => ({
-  ...delegate,
-  ...account,
+const activeDelegates = delegatesList.map(item => ({ ...item, publicKey: item.account.publicKey }));
+activeDelegates.push({
+  username: 'additional',
+  vote: '0',
+  rewards: '0',
+  producedBlocks: 28,
+  missedBlocks: 0,
+  productivity: 0,
+  publicKey: 'test_pbk',
+  rank: 999,
+  account: {
+    address: '14018336151296112016L',
+    publicKey: 'test_pbk',
+    secondPublicKey: '',
+  },
+  approval: 0,
 });
-const delegatesApiResponse = delegates.map(transformToLiskServiceFormat);
-
-jest.mock('../../../../constants/monitor', () => ({ DEFAULT_LIMIT: 8 }));
 
 describe('Delegates monitor page', () => {
   let props;
-  let delegatesWithData;
   let wrapper;
-  const name = '1234';
-  const setup = properties => mount(<Delegates {...properties} />);
+
+  const store = fakeStore();
+
+  const setup = properties => mount(
+    <Provider store={store}>
+      <Delegates {...properties} />
+    </Provider>,
+  );
 
   const switchTab = (tab) => {
     wrapper.find(`.tab.${tab}`).simulate('click');
@@ -33,7 +51,33 @@ describe('Delegates monitor page', () => {
       t: key => key,
       delegates: {
         isLoading: true,
+        data: activeDelegates,
+        loadData: jest.fn(),
+        clearData: jest.fn(),
+        urlSearchParams: {},
+      },
+      standByDelegates: {
+        isLoading: true,
         data: [],
+        loadData: jest.fn(),
+        clearData: jest.fn(),
+        urlSearchParams: {},
+      },
+      chartActiveAndStandbyData: {
+        isLoading: false,
+        data: '589',
+        loadData: jest.fn(),
+        clearData: jest.fn(),
+        urlSearchParams: {},
+      },
+      chartRegisteredDelegatesData: {
+        isLoading: false,
+        data: [
+          { x: 'Aug', y: 4 },
+          { x: 'Sep', y: 1 },
+          { x: 'Oct', y: 8 },
+          { x: 'Nov', y: 4 },
+        ],
         loadData: jest.fn(),
         clearData: jest.fn(),
         urlSearchParams: {},
@@ -41,65 +85,36 @@ describe('Delegates monitor page', () => {
       filters: {
         tab: 'active',
       },
-      applyFilters: jest.fn(),
+      applyFilters: jest.fn(filters => wrapper.setProps({ filters })),
     };
-
-    delegatesWithData = {
-      ...props.delegates,
-      isLoading: false,
-      data: delegatesApiResponse,
-    };
-    wrapper = setup(props);
   });
 
   it('renders a page with header', () => {
-    expect(wrapper.find('Box header')).toIncludeText('Active delegates');
+    wrapper = setup(props);
+    expect(wrapper.find('BoxHeader.delegates-table')).toIncludeText('Active delegates');
   });
 
-  it('renders table with delegates', () => {
-    expect(wrapper.find('.delegate-row')).toHaveLength(0);
-    wrapper.setProps({ delegates: delegatesWithData });
-    expect(wrapper.find('.delegate-row').hostNodes()).toHaveLength(delegatesApiResponse.length);
-  });
-
-  it('allows to switch to "Standby delegates" tab', () => {
-    expect(wrapper.find('.tab.standby')).not.toHaveClassName('active');
+  it('allows to switch to stand by delegates', () => {
+    wrapper = setup(props);
     switchTab('standby');
     expect(wrapper.find('.tab.standby')).toHaveClassName('active');
   });
 
-  it('shows error if API failed', () => {
-    const error = 'Loading failed';
-    wrapper.setProps({
-      delegates: {
-        ...props.delegates,
-        isLoading: false,
-        error,
-      },
-    });
-    expect(wrapper).toIncludeText(error);
+  it('renders the forging status', () => {
+    wrapper = setup(props);
+    expect(wrapper.find('a.delegate-row')).toHaveLength(delegatesList.length + 1);
   });
 
-  it('allows to filter delegates by name and clear the filter', () => {
-    wrapper.find('input.filter-by-name').simulate('change', { target: { value: name } });
-    expect(props.applyFilters).toHaveBeenCalledWith({ search: name, tab: props.filters.tab });
-    wrapper.find('input.filter-by-name').simulate('change', { target: { value: '' } });
-    expect(props.applyFilters).toHaveBeenCalledWith({ search: '', tab: props.filters.tab });
+  it('triggers forgingDataDisplayed action when mounted', () => {
+    jest.spyOn(blockActions, 'forgingDataDisplayed');
+    wrapper = setup(props);
+    expect(blockActions.forgingDataDisplayed).toHaveBeenCalled();
   });
 
-  it('cannot load more active delegates', () => {
-    wrapper = setup({ ...props, delegates: delegatesWithData });
-    expect(wrapper.find('.tab.active')).toHaveClassName('active');
-    expect(wrapper.find('button.loadMore')).toHaveLength(0);
-  });
-
-  it('allows to load more standby delegates', () => {
-    const tab = 'standby';
-    wrapper = setup({ ...props, delegates: delegatesWithData });
-    switchTab(tab);
-    wrapper.find('button.loadMore').simulate('click');
-    expect(props.delegates.loadData).toHaveBeenCalledWith({
-      offset: delegatesApiResponse.length, tab,
-    });
+  it('triggers forgingDataConcealed action when unmounted', () => {
+    jest.spyOn(blockActions, 'forgingDataConcealed');
+    wrapper = setup(props);
+    wrapper.unmount();
+    expect(blockActions.forgingDataConcealed).toHaveBeenCalled();
   });
 });

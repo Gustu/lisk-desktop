@@ -1,10 +1,17 @@
-@import '../../../../app/variables.css';
-
 .delegateLink:hover {
   text-decoration: none;
 }
 
 .checkbox {
   z-index: calc(var(--overlay-index) + 2);
+  pointer-events: none;
+}
+
+.content {
+  padding: 0 !important;
+}
+
+.searchInput {
+  opacity: 0;
   pointer-events: none;
 }

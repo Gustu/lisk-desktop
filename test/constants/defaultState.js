@@ -11,6 +11,7 @@ export default {
         USD: 1,
       },
     },
+    dynamicFees: {},
   },
   settings: {
     currency: 'USD',
@@ -18,10 +19,16 @@ export default {
       active: 'LSK',
       list: [],
     },
+    darkMode: false,
   },
   network: {
     name: 'Testnet',
-    networks: {},
+    networks: {
+      LSK: {
+        networkIdentifier: 'sample_identifier',
+        apiVersion: '2',
+      },
+    },
   },
   voting: {
     delegates: [],

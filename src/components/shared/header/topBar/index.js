@@ -23,4 +23,8 @@ const mapDispatchToProps = {
   settingsUpdated,
 };
 
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(withTranslation()(TopBar)));
+export default withRouter(
+  connect(mapStateToProps, mapDispatchToProps)(
+    withTranslation()(TopBar),
+  ),
+);

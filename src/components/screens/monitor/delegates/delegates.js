@@ -1,93 +1,50 @@
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { withTranslation } from 'react-i18next';
-import React from 'react';
-import grid from 'flexboxgrid/dist/flexboxgrid.css';
-import moment from 'moment';
-import { DEFAULT_LIMIT } from '../../../../constants/monitor';
-import { formatAmountBasedOnLocale } from '../../../../utils/formattedNumber';
-import { getUnixTimestampFromValue } from '../../../../utils/datetime';
-import AccountVisualWithAddress from '../../../shared/accountVisualWithAddress';
-import DelegatesTable from '../../../shared/delegatesTable';
 import MonitorHeader from '../header';
-import Tooltip from '../../../toolbox/tooltip/tooltip';
-import routes from '../../../../constants/routes';
+import Overview from './overview';
+import { DEFAULT_LIMIT } from '../../../../constants/monitor';
+import { forgingDataDisplayed, forgingDataConcealed } from '../../../../actions/blocks';
+import { Input } from '../../../toolbox/inputs';
+import Box from '../../../toolbox/box';
+import BoxHeader from '../../../toolbox/box/header';
+import BoxContent from '../../../toolbox/box/content';
+import BoxTabs from '../../../toolbox/tabs';
+import Table from '../../../toolbox/table';
 import styles from './delegates.css';
+import DelegateRow from './delegateRow';
+import header from './tableHeader';
 
-const Delegates = ({
-  delegates, t, filters, applyFilters, changeSort, sort, isMediumViewPort,
+// eslint-disable-next-line max-statements
+const DelegatesTable = ({
+  chartActiveAndStandbyData,
+  chartRegisteredDelegatesData,
+  standByDelegates,
+  applyFilters,
+  changeSort,
+  delegates,
+  filters,
+  sort,
+  t,
 }) => {
-  const getForgingTitle = status => ({
-    forgedThisRound: t('Forging'),
-    forgedLastRound: t('Awaiting slot'),
-    notForging: t('Not forging'),
-    missedLastRound: t('Missed block'),
-  }[status] || t('Loading'));
+  const [activeTab, setActiveTab] = useState('active');
+  const dispatch = useDispatch();
+  const handleLoadMore = () => {
+    delegates.loadData(Object.keys(filters).reduce((acc, key) => ({
+      ...acc,
+      ...(filters[key] && { [key]: filters[key] }),
+    }), {
+      offset: delegates.data.length,
+    }));
+  };
+  const forgingTimes = useSelector(state => state.blocks.forgingTimes);
 
-  const columns = [
-    {
-      id: 'rank',
-      isSortable: filters.tab === 'active',
-    },
-    {
-      id: 'username',
-      header: ('Name'),
-      className: grid['col-xs-2'],
-    },
-    {
-      id: 'address',
-      header: t('Address'),
-      /* eslint-disable-next-line react/display-name */
-      getValue: ({ address }) => <AccountVisualWithAddress {...{ address, isMediumViewPort }} />,
-      className: (filters.tab === 'active'
-        ? [grid['col-xs-3'], grid['col-md-3']]
-        : [grid['col-xs-5'], grid['col-md-6']]
-      ).join(' '),
-    },
-    ...(filters.tab === 'active' ? [{
-      id: 'forgingTime',
-      header: t('Forging time'),
-      headerTooltip: t('Time until next forging slot of a delegate.'),
-      /* eslint-disable-next-line react/display-name */
-      getValue: ({ forgingTime }) => (forgingTime
-        ? moment(forgingTime.diff(moment())).format(t('m [min] s [sec]'))
-        : '-'),
-      className: ['hidden-m', grid['col-md-2']].join(' '),
-    },
-    {
-      id: 'status',
-      header: t('Status'),
-      headerTooltip: t('Current status of a delegate: forging, not forging, awaiting slot or missed block.'),
-      /* eslint-disable-next-line react/display-name */
-      getValue: ({ status, lastBlock }) => (
-        <Tooltip
-          title={getForgingTitle(status)}
-          className="showOnBottom"
-          size="s"
-          content={(<div className={[styles.status, styles[status]].join(' ')} />)}
-          footer={(
-            <p>{lastBlock && moment(getUnixTimestampFromValue(lastBlock.timestamp)).fromNow()}</p>
-          )}
-        >
-          <p className={styles.statusToolip}>
-            {lastBlock && t('Last block forged @{{height}}', lastBlock)}
-          </p>
-        </Tooltip>
-      ),
-      className: [grid['col-xs-2'], grid['col-md-1'], styles.statusTitle].join(' '),
-    },
-    ] : []),
-    {
-      id: 'productivity',
-      isSortable: filters.tab === 'active',
-    },
-    {
-      id: 'approval',
-      header: t('Approval'),
-      headerTooltip: t('Percentage of total supply voting for a delegate.'),
-      /* eslint-disable-next-line react/display-name */
-      getValue: ({ approval }) => <strong>{`${formatAmountBasedOnLocale({ value: approval })} %`}</strong>,
-      className: [grid['col-xs-2'], grid['col-md-1'], styles.approvalTitle].join(' '),
-    },
-  ];
+  const handleFilter = ({ target: { value } }) => {
+    applyFilters({
+      ...filters,
+      search: value,
+    });
+  };
 
   const tabs = {
     tabs: [
@@ -101,33 +58,85 @@ const Delegates = ({
         className: 'standby',
       },
     ],
-    active: filters.tab,
-    onClick: ({ value }) => applyFilters({ ...filters, tab: value }),
+    active: activeTab,
+    onClick: ({ value }) => setActiveTab(value),
   };
 
-  const canLoadMore = filters.tab === 'active'
-    ? false
-    : !!delegates.data.length && delegates.data.length % DEFAULT_LIMIT === 0;
+  const statuses = {
+    forging: t('Forging'),
+    awaitingSlot: t('Awaiting slot'),
+    notForging: t('Not forging'),
+    missedBlock: t('Missed block'),
+  };
 
-  const getRowLink = delegate => `${routes.accounts.pathPrefix}${routes.accounts.path}/${delegate.address}`;
+  const canLoadMore = activeTab === 'active'
+    ? false
+    : !!standByDelegates.data.length && standByDelegates.data.length % DEFAULT_LIMIT === 0;
+
+  delegates = activeTab === 'active'
+    ? {
+      ...delegates,
+      data: filters.search
+        ? delegates.data.filter(delegate => delegate.username.includes(filters.search))
+        : delegates.data,
+    }
+    : standByDelegates;
+
+  useEffect(() => {
+    dispatch(forgingDataDisplayed());
+    return () => dispatch(forgingDataConcealed());
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === 'standby') {
+      delegates.loadData();
+    }
+  }, [activeTab]);
 
   return (
     <div>
       <MonitorHeader />
-      <DelegatesTable {...{
-        columns,
-        delegates,
-        tabs,
-        filters,
-        applyFilters,
-        canLoadMore,
-        getRowLink,
-        onSortChange: changeSort,
-        sort,
-      }}
+      <Overview
+        chartActiveAndStandby={chartActiveAndStandbyData}
+        chartDelegatesForging={forgingTimes}
+        chartRegisteredDelegates={chartRegisteredDelegatesData}
+        delegatesForgedLabels={Object.values(statuses)}
+        t={t}
       />
+      <Box main isLoading={delegates.isLoading}>
+        <BoxHeader className="delegates-table">
+          {tabs.tabs.length === 1
+            ? <h2>{tabs.tabs[0].name}</h2>
+            : <BoxTabs {...tabs} />
+          }
+          <span>
+            <Input
+              onChange={handleFilter}
+              value={filters.search}
+              className="filter-by-name"
+              size="xs"
+              placeholder={t('Filter by name...')}
+            />
+          </span>
+        </BoxHeader>
+        <BoxContent className={styles.content}>
+          <Table
+            data={delegates.data}
+            isLoading={delegates.isLoading}
+            row={DelegateRow}
+            loadData={handleLoadMore}
+            additionalRowProps={{
+              t,
+              forgingTimes,
+            }}
+            header={header(activeTab, changeSort, t)}
+            currentSort={sort}
+            canLoadMore={canLoadMore}
+          />
+        </BoxContent>
+      </Box>
     </div>
   );
 };
 
-export default withTranslation()(Delegates);
+export default withTranslation()(DelegatesTable);

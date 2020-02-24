@@ -2,7 +2,10 @@ import io from 'socket.io-client';
 import actionTypes from '../../constants/actions';
 import { networkStatusUpdated } from '../../actions/network';
 import { getAPIClient } from '../../utils/api/network';
+import { olderBlocksRetrieved, forgingTimesRetrieved } from '../../actions/blocks';
 
+const intervalTime = 5000;
+let interval;
 let connection;
 let forcedClosing = false;
 
@@ -30,6 +33,7 @@ const shouldUpdateBtc = (state) => {
 
 // eslint-disable-next-line max-statements
 const socketSetup = (store) => {
+  closeConnection();
   let windowIsFocused = true;
   const { ipc } = window;
   if (ipc && ipc.on) {
@@ -59,17 +63,29 @@ const socketSetup = (store) => {
 
 const socketMiddleware = store => (
   next => (action) => {
+    next(action);
     switch (action.type) {
-      case actionTypes.accountLoggedIn:
+      case actionTypes.networkSet:
+        store.dispatch(olderBlocksRetrieved());
         socketSetup(store, action);
         break;
-      case actionTypes.accountLoggedOut:
-        closeConnection();
+      case actionTypes.forgingDataDisplayed:
+        if (!interval) {
+          interval = setInterval(() => {
+            // if user refreshes the page, we might have a race condition here.
+            // I'll skip the first retrieval since it is useless without the blocks list
+            if (store.getState().blocks.latestBlocks.length) {
+              store.dispatch(forgingTimesRetrieved());
+            }
+          }, intervalTime);
+        }
         break;
-      /* istanbul ignore next */
+      case actionTypes.forgingDataConcealed:
+        clearInterval(interval);
+        interval = null;
+        break;
       default: break;
     }
-    next(action);
   });
 
 export default socketMiddleware;

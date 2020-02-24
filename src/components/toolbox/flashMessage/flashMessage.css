@@ -1,9 +1,8 @@
-@import '../../../app/variables.css';
 @import '../../../app/mixins.css';
 
 .wrapper {
   align-items: center;
-  background-color: var(--color-maastricht-blue);
+  background-color: var(--color-flash-message);
   border-bottom: 1px solid var(--light-border-color);
   box-sizing: border-box;
   display: flex;
@@ -25,7 +24,7 @@
     @mixin contentNormal;
 
     align-items: center;
-    color: var(--color-mystic);
+    color: var(--color-strong-mystic);
     display: flex;
     padding: 16px 0;
 

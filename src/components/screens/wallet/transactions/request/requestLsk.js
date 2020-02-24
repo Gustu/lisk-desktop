@@ -1,5 +1,6 @@
 import React from 'react';
-import { Input, AutoresizeTextarea } from '../../../../toolbox/inputs';
+import { Input, AutoResizeTextarea } from '../../../../toolbox/inputs';
+import { messageMaxLength } from '../../../../../constants/transactions';
 import CircularProgress from '../../../../toolbox/circularProgress/circularProgress';
 import Converter from '../../../../shared/converter';
 import RequestWrapper from './requestWrapper';
@@ -8,8 +9,7 @@ import Icon from '../../../../toolbox/icon';
 import { validateAmountFormat } from '../../../../../utils/validators';
 import i18n from '../../../../../i18n';
 import regex from '../../../../../utils/regex';
-
-const messageMaxLength = 64;
+import { sizeOfString } from '../../../../../utils/helpers';
 
 class RequestLsk extends React.Component {
   constructor(props) {
@@ -51,7 +51,7 @@ class RequestLsk extends React.Component {
   // eslint-disable-next-line max-statements
   handleFieldChange({ target }) {
     const { t } = this.props;
-    const byteCount = encodeURI(target.value).split(/%..|./).length - 1;
+    const byteCount = sizeOfString(target.value);
     const error = target.name === 'amount'
       ? validateAmountFormat({ value: target.value, locale: i18n.language }).message
       : byteCount > messageMaxLength;
@@ -115,7 +115,7 @@ class RequestLsk extends React.Component {
   render() {
     const { t } = this.props;
     const { fields, shareLink } = this.state;
-    const byteCount = encodeURI(fields.reference.value).split(/%..|./).length - 1;
+    const byteCount = sizeOfString(fields.reference.value);
 
     return (
       <RequestWrapper copyLabel={t('Copy link')} copyValue={shareLink} t={t}>
@@ -147,7 +147,7 @@ class RequestLsk extends React.Component {
         <label className={`${styles.fieldGroup} reference`}>
           <span className={`${styles.fieldLabel}`}>{t('Message (optional)')}</span>
           <span className={`${styles.referenceField}`}>
-            <AutoresizeTextarea
+            <AutoResizeTextarea
               maxLength={100}
               spellCheck={false}
               onChange={this.handleFieldChange}
@@ -172,10 +172,10 @@ class RequestLsk extends React.Component {
         </label>
         <label className={`${styles.fieldGroup}`}>
           <span className={`${styles.fieldLabel}`}>{t('Sharing link')}</span>
-          <AutoresizeTextarea
+          <AutoResizeTextarea
             name="shareLink"
             value={shareLink}
-            className={`${styles.textarea} request-link`}
+            className={`${styles.textarea} ${styles.sharingLink} request-link`}
             readOnly
           />
         </label>

@@ -1,4 +1,3 @@
-@import '../../../app/variables.css';
 @import './../../../app/mixins.css';
 
 .wrapper {
@@ -85,6 +84,7 @@
       padding-left: 15px;
       border-right: solid 1px var(--color-platinum);
       width: calc(100% - 20px);
+      color: var(--color-content-light);
     }
 
     & > .subTitle {
@@ -142,6 +142,9 @@
       & .subTitle {
         padding: 0;
         width: auto;
+        line-height: 20px;
+        height: 20px;
+        padding-top: 7px;
       }
     }
   }

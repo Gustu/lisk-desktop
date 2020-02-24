@@ -13,7 +13,7 @@ const Transactions = ({ t, transactions }) => {
     type: 'number-range',
   }, {
     label: t('Sender'),
-    placeholder: 'Address or Public key',
+    placeholder: t('Address or Public key'),
     name: 'sender',
     type: 'address',
   }, {
@@ -53,7 +53,13 @@ const Transactions = ({ t, transactions }) => {
   return (
     <div>
       <MonitorHeader />
-      <TransactionsTable isLoadMoreEnabled filters={filters} fields={fields} title={t('All transactions')} transactions={transactions} />
+      <TransactionsTable
+        isLoadMoreEnabled
+        filters={filters}
+        fields={fields}
+        title={t('All transactions')}
+        transactions={transactions}
+      />
     </div>
   );
 };

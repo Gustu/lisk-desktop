@@ -1,14 +1,24 @@
-import * as popsicle from 'popsicle';
 import { utils } from '@liskhq/lisk-transactions';
+import io from 'socket.io-client';
+import * as popsicle from 'popsicle';
 import { DEFAULT_LIMIT } from '../../../constants/monitor';
 import { getNetworkNameBasedOnNethash } from '../../getNetwork';
 import { getTimestampFromFirstBlock } from '../../datetime';
+import { version } from '../../../../package.json';
 import i18n from '../../../i18n';
 import networks from '../../../constants/networks';
 import voting from '../../../constants/voting';
+import { adaptTransactions } from './adapters';
+import transactionTypes from '../../../constants/transactionTypes';
 
-const liskServiceUrl = 'https://service.lisk.io';
-const liskServiceTestnetUrl = 'https://testnet-service.lisk.io';
+const isStaging = () => (
+  localStorage.getItem('useLiskServiceStaging') || version.includes('beta') || version.includes('rc')
+    ? '-staging' : ''
+);
+
+const liskServiceUrl = `https://mainnet-service${isStaging()}.lisk.io`;
+const liskServiceTestnetUrl = `https://testnet-service${isStaging()}.lisk.io`;
+const liskServiceBetanetUrl = 'https://betanet-service.lisk.io';
 
 const getServerUrl = (networkConfig) => {
   const name = getNetworkNameBasedOnNethash(networkConfig);
@@ -18,11 +28,13 @@ const getServerUrl = (networkConfig) => {
   if (name === networks.testnet.name) {
     return liskServiceTestnetUrl;
   }
-  const liskServiceDevnetUrl = localStorage.getItem('liskServiceUrl');
-  if (liskServiceDevnetUrl) {
-    return liskServiceDevnetUrl;
+  if (networkConfig.networks.LSK.nodeUrl.indexOf('betanet') > 0) {
+    return liskServiceBetanetUrl;
   }
-  throw new Error(i18n.t('This feature is supported only for mainnet and testnet.'));
+  if (networkConfig.networks.LSK.nodeUrl.indexOf('liskdev.net') > 0) {
+    return networkConfig.networks.LSK.nodeUrl.replace(/:\d{2,4}/, ':9901');
+  }
+  throw new Error(i18n.t('This feature can be accessed through Mainet and Testnet.'));
 };
 
 const formatDate = (value, options) => getTimestampFromFirstBlock(value, 'DD.MM.YY', options);
@@ -79,7 +91,7 @@ const liskServiceApi = {
   }) => liskServiceGet({
     networkConfig,
     path: '/api/v1/transactions',
-    transformResponse: response => response.data,
+    transformResponse: response => adaptTransactions(response).data,
     searchParams: {
       limit: DEFAULT_LIMIT,
       ...(dateFrom && { from: formatDate(dateFrom) }),
@@ -96,34 +108,68 @@ const liskServiceApi = {
     searchParams: { limit: DEFAULT_LIMIT, ...searchParams },
   }),
 
-  getDelegates: async (network, { tab, ...rest }) => {
-    const tabOptions = {
-      active: ({ networkConfig }, { search = '', ...searchParams }) => liskServiceGet({
-        networkConfig,
-        path: '/api/v1/delegates/active',
-        transformResponse: response => response.data.filter(
-          delegate => delegate.username.includes(search),
-        ),
-        searchParams: {
-          limit: voting.numberOfActiveDelegates,
-          ...searchParams,
-        },
-      }),
-      standby: ({ networkConfig }, { offset = 0, ...searchParams }) => liskServiceGet({
-        networkConfig,
-        path: '/api/v1/delegates',
-        transformResponse: response => response.data.filter(
-          delegate => delegate.rank > voting.numberOfActiveDelegates,
-        ),
-        searchParams: {
-          offset: offset + (Object.keys(searchParams).length ? 0 : voting.numberOfActiveDelegates),
-          limit: DEFAULT_LIMIT,
-          ...searchParams,
-        },
-      }),
-    };
-    return tabOptions[tab](network, rest);
+  getStandbyDelegates: async ({ networkConfig }, {
+    offset = 0, tab, ...searchParams
+  }) => liskServiceGet({
+    networkConfig,
+    path: '/api/v1/delegates',
+    transformResponse: response => response.data.filter(
+      delegate => delegate.rank > voting.numberOfActiveDelegates,
+    ),
+    searchParams: {
+      offset: offset + (Object.keys(searchParams).length ? 0 : voting.numberOfActiveDelegates),
+      limit: DEFAULT_LIMIT,
+      ...searchParams,
+    },
+  }),
+
+  getActiveDelegates: async ({ networkConfig }, { search = '', tab, ...searchParams }) => liskServiceGet({
+    networkConfig,
+    path: '/api/v1/delegates/active',
+    transformResponse: response => response.data.filter(
+      delegate => delegate.username.includes(search),
+    ),
+    searchParams: {
+      limit: voting.numberOfActiveDelegates,
+      ...searchParams,
+    },
+  }),
+
+  /**
+   * Returns lisk-service URL based on network name and nethash
+   *
+   * In particular it resolves mainnet/testnet nethash to coresponding lisk-service instance
+   *
+   * @param {Object} networkConfig  - structured as network store: src/store/reducers/network.js
+   * @param {String} networkConfig.name
+   * @param {String} networkConfig.networks.LSK.nethash - if name is "Custom node"
+   * @return {String} lisk-service URL
+   */
+  getLiskServiceUrl: (networkConfig) => {
+    try {
+      return getServerUrl(networkConfig);
+    } catch (e) {
+      return null;
+    }
   },
+
+  getActiveAndStandByDelegates: async ({ networkConfig }) => liskServiceGet({
+    networkConfig,
+    path: '/api/v1/delegates',
+    searchParams: { limit: 1 },
+    transformResponse: response => response.meta,
+  }),
+
+  getRegisteredDelegates: async ({ networkConfig }) => liskServiceGet({
+    networkConfig,
+    path: '/api/v1/transactions',
+    searchParams: {
+      limit: 100,
+      type: transactionTypes().registerDelegate.outgoingCode,
+      sort: 'timestamp:desc',
+    },
+    transformResponse: response => response.data,
+  }),
 
   getNextForgers: async ({ networkConfig }, searchParams) => liskServiceGet({
     networkConfig,
@@ -145,6 +191,18 @@ const liskServiceApi = {
     networkConfig,
     path: '/api/v1/network/status',
   }),
+
+  listenToBlockchainEvents: ({ networkConfig, event, callback }) => {
+    const socket = io(
+      `${liskServiceApi.getLiskServiceUrl(networkConfig)}/blockchain`,
+      { transports: ['websocket'] },
+    );
+    socket.on(event, callback);
+
+    return function cleanUp() {
+      socket.close();
+    };
+  },
 };
 
 export default liskServiceApi;

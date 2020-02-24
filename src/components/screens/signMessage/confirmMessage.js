@@ -1,9 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import Lisk from '@liskhq/lisk-client';
+import liskClient from 'Utils/lisk-client'; // eslint-disable-line
 import CopyToClipboard from 'react-copy-to-clipboard';
 import styles from './signMessage.css';
-import { AutoresizeTextarea } from '../../toolbox/inputs';
+import { AutoResizeTextarea } from '../../toolbox/inputs';
 import { SecondaryButton, TertiaryButton } from '../../toolbox/buttons/button';
 import routes from '../../../constants/routes';
 
@@ -28,6 +28,7 @@ class ConfirmMessage extends React.Component {
   }
 
   sign() {
+    const Lisk = liskClient();
     const { message, account } = this.props;
     const signedMessage = Lisk.cryptography.signMessageWithPassphrase(
       message,
@@ -49,11 +50,10 @@ class ConfirmMessage extends React.Component {
     return (
       <section>
         <div className={styles.header}>
-          <span className={styles.step}>{t('Step {{current}} / {{total}}', { current: 2, total: 2 })}</span>
           <h1>{t('Your signed message')}</h1>
         </div>
         <div className={styles.result}>
-          <AutoresizeTextarea
+          <AutoResizeTextarea
             className={`${styles.textarea} result`}
             value={result}
             readOnly

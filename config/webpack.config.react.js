@@ -10,6 +10,7 @@ const path = require('path');
 const reactToolboxVariables = require('./reactToolbox.config');
 const I18nScannerPlugin = require('../src/i18n-scanner');
 const bundleVersion = require('../package.json').version;
+const stylelintrc = require('../.stylelintrc.json');
 
 const getLocales = (url) => {
   const file = fs.readFileSync(path.join(__dirname, url));
@@ -52,37 +53,56 @@ const headCssLoader = {
 };
 // const headCssLoadersConfig = { ...headCssLoader };
 
-const cssLoadersConfig = [
-  cssLoader,
-  {
-    loader: 'postcss-loader',
-    options: {
-      ident: 'postcss',
-      sourceMap: true,
-      sourceComments: true,
-      plugins: [
-        /* eslint-disable import/no-extraneous-dependencies */
-        require('postcss-partial-import')({}),
-        require('postcss-mixins')({}),
-        require('postcss-nesting')({}),
-        require('postcss-cssnext')({
-          features: {
-            customProperties: {
-              variables: reactToolboxVariables,
-            },
-          },
-        }),
-        require('postcss-functions')({
-          functions: {
-            rem: px => `${(px / 10)}rem`,
-          },
-        }),
-        require('postcss-for')({}),
-        /* eslint-enable import/no-extraneous-dependencies */
-      ],
+const MiniCssExtractPluginLoader = {
+  loader: MiniCssExtractPlugin.loader,
+  options: {
+    // only enable hot in development
+    hmr: process.env.DEBUG,
+    // if hmr does not work, this is a forceful method.
+    reloadAll: false,
+  },
+};
+
+const reactToastifyLoader = {
+  loader: 'css-loader',
+  options: {
+    sourceMap: true,
+    modules: {
+      mode: 'local',
+      localIdentName: '[local]',
     },
   },
-];
+};
+
+const postCssLoader = {
+  loader: 'postcss-loader',
+  options: {
+    ident: 'postcss',
+    sourceMap: true,
+    sourceComments: true,
+    plugins: [
+      /* eslint-disable import/no-extraneous-dependencies */
+      require('postcss-partial-import')({}),
+      require('postcss-mixins')({}),
+      require('postcss-nesting')({}),
+      require('postcss-preset-env')({
+        stage: 0,
+        features: {
+          'custom-properties': {
+            variables: reactToolboxVariables,
+          },
+        },
+      }),
+      require('postcss-functions')({
+        functions: {
+          rem: px => `${(px / 10)}rem`,
+        },
+      }),
+      require('postcss-for')({}),
+      /* eslint-enable import/no-extraneous-dependencies */
+    ],
+  },
+};
 
 module.exports = {
   entry: entries,
@@ -100,17 +120,7 @@ module.exports = {
     new StyleLintPlugin({
       context: `${resolve(__dirname, '../src')}/`,
       files: '**/*.css',
-      config: {
-        extends: 'stylelint-config-standard',
-        rules: {
-          'selector-pseudo-class-no-unknown': null,
-          'unit-whitelist': ['px', 'deg', '%', 'ms', 's'],
-          'length-zero-no-unit': null,
-          'at-rule-no-unknown': null,
-          'selector-no-vendor-prefix': true,
-          'no-descending-specificity': null,
-        },
-      },
+      config: stylelintrc,
     }),
     // new MiniCssExtractPlugin({
     //   filename: 'head.css',
@@ -152,11 +162,15 @@ module.exports = {
     rules: [
       {
         test: /styles\.head\.css$/,
-        use: [MiniCssExtractPlugin.loader, headCssLoader],
+        use: [MiniCssExtractPluginLoader, headCssLoader],
       },
       {
-        test: /^((?!styles\.head).)*\.css$/,
-        use: [MiniCssExtractPlugin.loader, ...cssLoadersConfig],
+        test: /ReactToastify\.css$/,
+        use: [MiniCssExtractPluginLoader, reactToastifyLoader, postCssLoader],
+      },
+      {
+        test: /^((?!(styles\.head|ReactToastify)).)*\.css$/,
+        use: [MiniCssExtractPluginLoader, cssLoader, postCssLoader],
       },
     ],
   },

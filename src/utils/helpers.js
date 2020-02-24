@@ -73,3 +73,27 @@ export const flattenArray = arr =>
     (Array.isArray(item)
       ? [...acc, ...flattenArray(item)]
       : [...acc, item]), []).filter(item => !!item);
+
+/**
+ * Returns the size of a given string in bytes
+ *
+ * @param {string} str - a random string
+ * @returns {number} - string size in bytes
+ */
+export const sizeOfString = str => encodeURI(str).split(/%..|./).length - 1;
+
+/**
+ * Checks if a given parameter is a React component
+ *
+ * @param {any} component - the target to test
+ * @returns {string|boolean} - Component type or false
+ */
+export const isReactComponent = (component) => {
+  if (typeof component === 'function' && component.prototype.isReactComponent) {
+    return 'class';
+  }
+  if (typeof component === 'function' && typeof component().$$typeof === 'symbol') {
+    return 'function';
+  }
+  return false;
+};

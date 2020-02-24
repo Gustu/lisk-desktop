@@ -1,10 +1,12 @@
+import React from 'react';
 import {
   deepMergeObj,
   removeUndefinedKeys,
   isEmpty,
   filterObjectPropsWithValue,
+  sizeOfString,
+  isReactComponent,
 } from './helpers';
-
 
 describe('helpers', () => {
   describe('deepMergeObj', () => {
@@ -60,6 +62,33 @@ describe('helpers', () => {
         genesis_16: 'unvotes',
         genesis_17: 'votes',
       }, 'unvotes')).toEqual(['genesis_15', 'genesis_16']);
+    });
+  });
+  describe('sizeOfString', () => {
+    it('should calculate the size of a string', () => {
+      expect(sizeOfString('random string')).toEqual(13);
+    });
+
+    it('should calculate the size of null', () => {
+      expect(sizeOfString()).toEqual(9);
+    });
+  });
+  describe('isReactComponent', () => {
+    it('detects class components', () => {
+      class TextComponent extends React.Component {
+        render() {
+          return (<div />);
+        }
+      }
+      expect(isReactComponent(TextComponent)).toEqual('class');
+    });
+    it('detects class components', () => {
+      const TextComponent = () => <div />;
+      expect(isReactComponent(TextComponent)).toEqual('function');
+    });
+    it('detects class components', () => {
+      const NoComponent = () => 'some_other_value';
+      expect(isReactComponent(NoComponent)).toEqual(false);
     });
   });
 });

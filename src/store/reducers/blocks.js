@@ -1,7 +1,7 @@
 import actionTypes from '../../constants/actions';
 import voting from '../../constants/voting';
 
-const blocks = (state = { latestBlocks: [] }, action) => {
+const blocks = (state = { latestBlocks: [], forgingTimes: {} }, action) => {
   switch (action.type) {
     case actionTypes.newBlockCreated:
       return {
@@ -15,11 +15,13 @@ const blocks = (state = { latestBlocks: [] }, action) => {
       return {
         ...state,
         latestBlocks: [
-          ...state.latestBlocks,
-          ...action.blocks.filter(block => (
-            block.height < Math.min(...state.latestBlocks.map(b => b.height))
-          )),
-        ].slice(0, voting.numberOfActiveDelegates * 2),
+          ...action.data,
+        ],
+      };
+    case actionTypes.forgingTimesRetrieved:
+      return {
+        ...state,
+        forgingTimes: action.data,
       };
     default:
       return state;

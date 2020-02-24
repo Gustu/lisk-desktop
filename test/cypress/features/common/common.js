@@ -159,6 +159,7 @@ Then(/^I click on recent transaction$/, function () {
 });
 
 Then(/^I click on recent bookmark$/, function () {
+  cy.wait(300);
   cy.get(ss.bookmarkAccount).eq(0).click();
 });
 
@@ -186,4 +187,8 @@ Then(/^I confirm transfer$/, function () {
 
 Then(/^I go back to wallet$/, function () {
   cy.get(ss.okayBtn).click();
+});
+
+Then(/^I dismiss the onboarding$/, function () {
+  cy.get(ss.closeOnboardingBtn).click();
 });

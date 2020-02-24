@@ -1,11 +1,10 @@
-@import '../../../app/variables.css';
-
 .wrapper {
   margin: 20px auto;
   display: flex;
   align-items: center;
   text-align: center;
   width: 100%;
+  flex-grow: 1;
 
   &.top {
     justify-content: flex-start;

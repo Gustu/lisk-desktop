@@ -1,15 +1,16 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import Dropdown from '../../../../toolbox/dropdown/dropdown';
-import styles from './userAccount.css';
-import Icon from '../../../../toolbox/icon';
-import { tokenKeys } from '../../../../../constants/tokens';
-import routes from '../../../../../constants/routes';
-import feedbackLinks from '../../../../../constants/feedbackLinks';
-import externalLinks from '../../../../../constants/externalLinks';
-import DropdownButton from '../../../../toolbox/dropdownButton';
 import { SecondaryButton } from '../../../../toolbox/buttons/button';
+import { loginType } from '../../../../../constants/hwConstants';
+import { tokenKeys } from '../../../../../constants/tokens';
 import AccountInfo from './accountInfo';
+import DropdownButton from '../../../../toolbox/dropdownButton';
+import Icon from '../../../../toolbox/icon';
+import MenuItem from './menuItem';
+import Separator from '../../../../toolbox/dropdown/separator';
+import externalLinks from '../../../../../constants/externalLinks';
+import feedbackLinks from '../../../../../constants/feedbackLinks';
+import routes from '../../../../../constants/routes';
+import styles from './userAccount.css';
 
 class UserAccount extends React.Component {
   constructor(props) {
@@ -39,19 +40,55 @@ class UserAccount extends React.Component {
     this.childRef.toggleDropdown();
   }
 
-  render() {
+  renderTokens = () => {
+    const {
+      token, t, account,
+    } = this.props;
+    const isUserDataFetched = account.info && account.info[token.active] && (
+      !!account.info[token.active].balance
+      || account.info[token.active].balance === 0
+    );
+    const enabledTokens = tokenKeys.filter(key => token.list[key]);
+
+    return (
+      isUserDataFetched && enabledTokens.map(tokenKey => (account.info[tokenKey]
+        ? (
+          <React.Fragment key={tokenKey}>
+            <span
+              className={`${styles.accountHolder} ${tokenKey} token`}
+              onClick={() => this.handleTokenSelect(tokenKey)}
+            >
+              <AccountInfo
+                account={account.info[tokenKey]}
+                token={tokenKey}
+                t={t}
+              />
+              {
+              tokenKey === token.active
+                ? <span className={styles.activeLabel}>{t('Active')}</span>
+                : null
+            }
+            </span>
+            <Separator />
+          </React.Fragment>
+        )
+        : null
+      ))
+    );
+  }
+
+  renderButtonLabel = () => {
     const {
       token, t, account, isUserLogout, signInHolderClassName,
     } = this.props;
 
     /* istanbul ignore next */
-    const enabledTokens = tokenKeys.filter(key => token.list[key]);
     const isUserDataFetched = account.info && account.info[token.active] && (
       !!account.info[token.active].balance
       || account.info[token.active].balance === 0
     );
 
-    const renderAccountInfoOrIcon = !isUserLogout && isUserDataFetched
+    return !isUserLogout && isUserDataFetched
       ? (
         <AccountInfo
           className="active-info"
@@ -65,100 +102,86 @@ class UserAccount extends React.Component {
           <Icon name="user" />
         </span>
       );
+  }
 
+  render() {
+    const {
+      token, t, account, isUserLogout,
+    } = this.props;
     return (
       <DropdownButton
         buttonClassName={`${styles.wrapper} user-account`}
         className={styles.dropdown}
-        buttonLabel={renderAccountInfoOrIcon}
+        buttonLabel={this.renderButtonLabel()}
         ButtonComponent={SecondaryButton}
         align="right"
         ref={this.setChildRef}
       >
         {
-          isUserDataFetched && enabledTokens.map(tokenKey => (account.info[tokenKey]
-            ? ([
-              <span
-                className={`${styles.accountHolder} ${tokenKey} token`}
-                key={tokenKey}
-                onClick={() => this.handleTokenSelect(tokenKey)}
-              >
-                <AccountInfo
-                  account={account.info[tokenKey]}
-                  token={tokenKey}
-                  t={t}
-                />
-                {
-                  tokenKey === token.active
-                    ? <span className={styles.activeLabel}>{t('Active')}</span>
-                    : null
-                }
-              </span>,
-              <Dropdown.Separator key={`separator-${tokenKey}`} className={styles.separator} />,
-            ])
-            : null
-          ))
+          this.renderTokens()
         }
-
-        <a
-          className={styles.dropdownOption}
+        <MenuItem
+          name="discord"
+          title={t('Discord')}
           href={externalLinks.discord}
-          rel="noopener noreferrer"
-          target="_blank"
           onClick={this.toggleDropdown}
-        >
-          <Icon name="discordIcon" className={styles.defaultIcon} />
-          <Icon name="discordIconActive" className={styles.activeIcon} />
-          <span>{t('Discord')}</span>
-        </a>
-
-        <a
-          className={styles.dropdownOption}
+        />
+        <MenuItem
+          name="feedback"
+          title={t('Give Feedback')}
           href={feedbackLinks.general}
-          rel="noopener noreferrer"
-          target="_blank"
           onClick={this.toggleDropdown}
-        >
-          <Icon name="feedback" className={styles.defaultIcon} />
-          <Icon name="feedbackActive" className={styles.activeIcon} />
-          <span>{t('Give Feedback')}</span>
-        </a>
-
-        <Link
-          id="settings"
+        />
+        <MenuItem
+          name="settings"
+          title={t('Settings')}
           to={routes.settings.path}
-          className={styles.dropdownOption}
           onClick={this.toggleDropdown}
-        >
-          <Icon name="settings" className={styles.defaultIcon} />
-          <Icon name="settingsActive" className={styles.activeIcon} />
-          <span>{t('Settings')}</span>
-        </Link>
-
-        <Dropdown.Separator className={styles.separator} />
-
+        />
+        {
+          (typeof account.loginType === 'number'
+          && account.loginType === loginType.normal
+          && token.active !== 'BTC'
+          )
+            ? (
+              <MenuItem
+                name="signMessage"
+                title={t('Sign Message')}
+                to={routes.signMessage.path}
+                onClick={this.toggleDropdown}
+              />
+            ) : null
+        }
+        {
+          token.active !== 'BTC'
+            ? (
+              <MenuItem
+                name="verifyMessage"
+                title={t('Verify Message')}
+                to={routes.verifyMMessage.path}
+                onClick={this.toggleDropdown}
+              />
+            ) : null
+        }
+        <Separator />
         {
           isUserLogout
             ? (
-              <Link
-                className={`${styles.dropdownOption} signIn`}
+              <MenuItem
+                className="signIn"
+                name="signIn"
+                title={t('Sign in')}
                 to={routes.login.path}
                 onClick={this.toggleDropdown}
-              >
-                <Icon name="signin" className={styles.defaultIcon} />
-                <Icon name="signinActive" className={styles.activeIcon} />
-                <span>{t('Sign in')}</span>
-              </Link>
+              />
             )
             : (
-              <span
-                className={`${styles.dropdownOption} logout`}
+              <MenuItem
+                className="logout"
+                name="logout"
+                title={t('Sign out')}
                 onClick={this.handleLogout}
-              >
-                <Icon name="logout" className={styles.defaultIcon} />
-                <Icon name="logoutActive" className={styles.activeIcon} />
-                <span>{t('Sign out')}</span>
-              </span>
+              />
             )
         }
       </DropdownButton>

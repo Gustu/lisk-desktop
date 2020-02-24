@@ -1,3 +1,5 @@
+const { join } = require('path');
+
 module.exports = {
   modulePaths: ['src/components'],
   testMatch: [
@@ -13,7 +15,6 @@ module.exports = {
     'src/components/screens/register/register.test.js',
     'src/components/screens/delegates/voting/voteUrlProcessor/index.test.js',
     'src/store/reducers/liskService.test.js',
-    'src/store/middlewares/socket.test.js',
     'src/components/screens/register/register.test.js',
     'src/components/shared/header/signInHeader/signInHeader.test.js',
   ],
@@ -23,6 +24,7 @@ module.exports = {
   moduleNameMapper: {
     '^.+\\.css$': 'identity-obj-proxy',
     '\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$': '<rootDir>/__mocks__/fileMock.js',
+    '^Utils/lisk-client': join(__dirname, '.', 'src/utils/api/lisk-client.js'),
   },
   collectCoverage: true,
   coverageDirectory: '<rootDir>/coverage/jest',
@@ -38,6 +40,7 @@ module.exports = {
     'app/src/ledger.js',
     'src/actions/liskService.js',
     'src/actions/transactions.js',
+    'src/actions/blocks.js',
     'src/components/screens/wallet/balanceChart.js', // This should be unskipped in issue #1499
     'src/utils/balanceChart.js', // This should be unskipped in issue #1499
     'src/components/shared/errorBoundary/index.js',
@@ -47,7 +50,7 @@ module.exports = {
     'src/components/screens/register/register.js',
     'src/components/screens/register/register.js',
     'src/components/screens/wallet/transactions/request/index.js',
-    'src/components/screens/wallet/transactions/request/index.js',
+    'src/components/screens/wallet/transactions/request/requestWrapper.js',
     'src/components/shared/transactionDashboard/index.js',
     'src/components/screens/wallet/transactions/transactions.js',
     'src/components/screens/explorer/transactions/transactions.js',
@@ -56,6 +59,7 @@ module.exports = {
     'src/i18n-scanner.js',
     'src/main.js',
     'src/store/middlewares/login.js',
+    'src/store/index.js',
     'src/store/reducers/liskService.js',
     'src/store/reducers/filters.js', // To be removed in #2175
     'src/tests.js',
@@ -64,6 +68,7 @@ module.exports = {
     'src/utils/api/btc/',
     'src/utils/applyDeviceClass.js',
     'src/utils/ledger.js',
+    'src/utils/theme.js',
     'src/components/screens/registerDelegate/registerDelegate.js',
     'src/components/wallet/transactions/transactionsOverview.js',
     'src/components/screens/delegates/voting/voting.js',
@@ -82,6 +87,28 @@ module.exports = {
     'src/components/screens/register/register.js',
     'src/components/toolbox/demoRenderer.js',
     'src/components/screens/delegates/votingHeader.js',
+    'src/components/screens/monitor/delegate/delegate.js',
+    'src/components/screens/monitor/delegates/delegateRow.js',
+    'src/components/screens/monitor/delegates/delegates.js',
+    'src/components/shared/accountVisualWithAddress/index.js',
+    'src/components/toolbox/table/empty.js',
+    'src/components/toolbox/table/header.js',
+    'src/utils/api/lisk-client.js',
+    'src/utils/api/delegates.js',
+    'src/store/reducers/network.js',
+    'src/utils/api/lsk/adapters.js',
+    'src/actions/network/lsk.js',
+    'src/utils/hacks.js',
+    'src/utils/hwManager.js',
+    'src/utils/voting.js',
+    'src/actions/voting.js',
+    'src/components/shared/votes/votesTab.js',
+    'src/components/shared/votes/voteRow.js',
+    'src/components/shared/votes/votesTableHeader.js',
+    'src/components/screens/dashboard/recentTransactions/transactionList.js',
+    'src/components/screens/delegates/delegatesTable/delegateRow.js',
+    'src/components/screens/delegates/delegatesTable/tableHeader.js',
+    'src/store/reducers/network.js',
   ],
   coverageThreshold: {
     global: {

@@ -1,6 +1,7 @@
 /* eslint-disable max-lines */
 import React from 'react';
-import Lisk from '@liskhq/lisk-client';
+import { toast } from 'react-toastify';
+import liskClient from 'Utils/lisk-client'; // eslint-disable-line
 import { withTranslation } from 'react-i18next';
 import { withRouter } from 'react-router';
 import { to } from 'await-to-js';
@@ -72,7 +73,7 @@ class Header extends React.Component {
   // eslint-disable-next-line max-statements
   async checkNodeStatus(showErrorToaster = true) {
     const {
-      liskAPIClient, errorToastDisplayed, network,
+      liskAPIClient, network,
     } = this.props;
 
     if (liskAPIClient) {
@@ -89,7 +90,7 @@ class Header extends React.Component {
           this.setState(({ validationError: '' }));
         }
         if (showErrorToaster) {
-          errorToastDisplayed({ label: `Unable to connect to the node, Error: ${error.message}` });
+          toast.error(`Unable to connect to the node, Error: ${error.message}`);
         }
       }
     }
@@ -141,6 +142,7 @@ class Header extends React.Component {
     const newNetwork = this.getNetwork(network);
 
     if (network === networks.customNode.code) {
+      const Lisk = liskClient();
       const liskAPIClient = new Lisk.APIClient([nodeURL], {});
       liskAPIClient.node.getConstants()
         .then((res) => {
@@ -219,7 +221,7 @@ class Header extends React.Component {
       <header className={`${styles.wrapper} mainHeader ${dark ? 'dark' : ''}`}>
         <div className={`${styles.headerContent}`}>
           <div className={`${styles.logo}`}>
-            <Icon name={dark ? 'liskLogoWhite' : 'liskLogo'} className="topbar-logo" />
+            <Icon noTheme name="liskLogo" className="topbar-logo" />
           </div>
           <div className={`${styles.buttonsHolder}`}>
             {
